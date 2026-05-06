@@ -1,29 +1,55 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn
+} from 'typeorm';
+import { Expose } from 'class-transformer';
+import { Users } from '../../users/entities/user.entity';
+import { RequestStatus } from '../enums/request-status.enum';
+//import { Trainings } from './training.entity';
 
-@Entity('training_requests')
-export class TrainingRequest {
+@Entity({
+  name: 'TRAINING_REQUESTS',
+})
+export class TrainingRequests {
+  @Expose({ groups: ['Get'] })
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  companyName!: string;
-
+  @Expose({ groups: ['Get'] })
   @Column({ type: 'int' })
-  numberOfPeople!: number;
+  participantsCount!: number;
 
-  @Column({ type: 'text' })
+  @Expose({ groups: ['Get'] })
+  @Column({ type: 'text', nullable: false })
   objectives!: string;
 
-  @Column({ type: 'text' })
+  @Expose({ groups: ['Get'] })
+  @Column({ type: 'text', nullable: false })
   context!: string;
 
-  @Column({ 
-    type: 'enum', 
-    enum: ['pendiente', 'en proceso', 'finalizada'], 
-    default: 'pendiente' 
+  @Expose({ groups: ['Get'] })
+  @Column({
+    type: 'enum',
+    enum: RequestStatus,
+    default: RequestStatus.PENDING
   })
-  status!: string;
+  status!: RequestStatus;
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+
+  @ManyToOne(() => Users)
+  user!: Users;
+
+  /*@ManyToOne(() => Trainings, (training) => training.requests)
+  training!: Trainings;*/
+
+
 }
