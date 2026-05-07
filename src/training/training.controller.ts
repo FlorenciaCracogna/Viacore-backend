@@ -12,7 +12,7 @@ import { TrainingService } from './training.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 
-@Controller('services')
+@Controller('trainings')
 export class TrainingController {
   constructor(private readonly trainingService: TrainingService) {}
 
