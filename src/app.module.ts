@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/user.module';
@@ -9,6 +14,7 @@ import typeorm from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { TrainingModule } from './training/training.module';
+import { TrainingService } from './training/training.service';
 
 @Module({
   imports: [
@@ -35,8 +41,14 @@ import { TrainingModule } from './training/training.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
+export class AppModule implements NestModule, OnApplicationBootstrap {
+  constructor(private readonly trainingService: TrainingService) {}
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+
+  async onApplicationBootstrap() {
+    await this.trainingService.addTraining();
+    console.log('Capacitaciones cargadas');
   }
 }

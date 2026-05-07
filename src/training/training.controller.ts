@@ -31,6 +31,11 @@ export class TrainingController {
     return this.trainingService.createTraining(dataTraining);
   }
 
+  @Post('seeder')
+  seedTraining() {
+    return this.trainingService.addTraining();
+  }
+
   @Put(':id')
   updateTraining(
     @Param('id', ParseUUIDPipe) id: string,

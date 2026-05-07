@@ -5,9 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Training } from './entities/training.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateTrainingDto } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
+import { SeedTraining } from './dto/seeder-training.dto';
 
 @Injectable()
 export class TrainingRepository {
@@ -50,6 +51,37 @@ export class TrainingRepository {
   async createTraining(dataTraining: CreateTrainingDto) {
     const newTraining = this.trainingOrmRepository.create(dataTraining);
     return await this.trainingOrmRepository.save(newTraining);
+  }
+
+  async addTraining(dataTrainings: SeedTraining[]) {
+    const titles = dataTrainings.map((training) => training.title);
+
+    const existingTrainings = await this.trainingOrmRepository.find({
+      where: {
+        title: In(titles),
+      },
+    });
+
+    const existingTitles = existingTrainings.map((training) => training.title);
+
+    const trainingToSave: Training[] = [];
+
+    for (const dataTraining of dataTrainings) {
+      if (existingTitles.includes(dataTraining.title)) continue;
+      const newTraining = this.trainingOrmRepository.create({
+        title: dataTraining.title,
+        description: dataTraining.description,
+        category: dataTraining.category,
+      });
+
+      trainingToSave.push(newTraining);
+    }
+
+    if (!trainingToSave.length) {
+      return [];
+    }
+
+    return await this.trainingOrmRepository.save(trainingToSave);
   }
 
   async updateTraining(id: string, dataTraining: UpdateTrainingDto) {
