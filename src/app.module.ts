@@ -15,6 +15,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { TrainingModule } from './training/training.module';
 import { TrainingService } from './training/training.service';
+import { MeetingsModule } from './meetings/meetings.module';
+import { TrainingRequestModule } from './training-requests/training-request.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { TrainingService } from './training/training.service';
       },
     }),
     TrainingModule,
+    MeetingsModule,
+    TrainingRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
