@@ -90,6 +90,29 @@ export class Users {
 
   @Expose({ groups: ['Get'] })
   @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  city!: string;
+
+  @Expose({ groups: ['Get'] })
+  @Column({
+    type: 'varchar',
+    length: 150,
+    nullable: true,
+  })
+  address!: string;
+
+  @Expose({ groups: ['Get'] })
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  profileCompleted!: boolean;
+
+  @Expose({ groups: ['Get'] })
+  @Column({
     type: 'boolean',
     default: true,
   })

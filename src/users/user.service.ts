@@ -10,8 +10,9 @@ import { Repository } from 'typeorm';
 import { Users } from './entities/user.entity';
 
 import { UpdateUserDto } from './dto/update-user.dto';
-
 import { CompleteProfileDto } from './dto/create-user.dto';
+
+
 
 @Injectable()
 export class UsersService {
