@@ -94,7 +94,6 @@ export class Users {
     length: 100,
     nullable: true,
   })
-  city!: string;
 
   @Expose({ groups: ['Get'] })
   @Column({
@@ -102,7 +101,6 @@ export class Users {
     length: 150,
     nullable: true,
   })
-  address!: string;
 
   @Expose({ groups: ['Get'] })
   @Column({
