@@ -91,7 +91,8 @@ export class FileResourceService {
     return this.fileRepository.save(fileResource);
   }
 
-   async uploadForEntity(
+  //Carga de archivos desde otro modulo
+  async uploadForEntity(
     file: Express.Multer.File,
     parentType: 'training' | 'trainingRequest',
     parentId: string,
@@ -118,11 +119,11 @@ export class FileResourceService {
     });
 
     // ASOCIACIÓN DINÁMICA (SIN USAR REPOS)
-/*    if (parentType === 'training') {
-      fileResource.trainingId = parentId;
+    if (parentType === 'training') {
+      fileResource.training = { id: parentId } as any; 
     }
 
-    if (parentType === 'trainingRequest') {
+/*    if (parentType === 'trainingRequest') {
       fileResource.trainingRequestId = parentId;
     }
 */

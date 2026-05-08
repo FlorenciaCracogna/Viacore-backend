@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-//import { Training } from '../training/training.entity';
+import { Training } from '../../training/entities/training.entity';
 //import { TrainingRequest } from '../training-request/training-request.entity';
 
 @Entity('FILE_RESOURCE')
@@ -24,14 +24,14 @@ export class FileResource {
   fileType: string;
 
   // 1–1 con Training (material / imagen)
-  /*@OneToOne(() => Training, (training) => training.file, {
+  @OneToOne(() => Training, (training) => training.fileResource, {
     nullable: true,
     onDelete: 'CASCADE',
   })
   training?: Training;
 
   // 0–1 con TrainingRequest (documento adjunto)
-  @OneToOne(
+  /*@OneToOne(
     () => TrainingRequest,
     (trainingRequest) => trainingRequest.file,
     {

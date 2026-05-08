@@ -9,5 +9,6 @@ import { FileResource } from './entities/file-resource.entity';
   imports: [TypeOrmModule.forFeature([FileResource])],
   controllers: [FileResourceController],
   providers: [FileResourceService,CloudinaryConfig],
+  exports:[FileResourceService]
 })
 export class FileResourceModule {}
