@@ -13,6 +13,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import typeorm from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { TrainingModule } from './training/training.module';
+import { TrainingService } from './training/training.service';
+import { MeetingsModule } from './meetings/meetings.module';
+import { TrainingRequestModule } from './training-requests/training-request.module';
 
 @Module({
   imports: [
@@ -22,7 +26,6 @@ import { JwtModule } from '@nestjs/jwt';
       isGlobal: true,
       envFilePath: '.development.env',
       load: [typeorm],
-      
     }),
     EventEmitterModule.forRoot(),
     TypeOrmModule.forRootAsync({
@@ -36,6 +39,9 @@ import { JwtModule } from '@nestjs/jwt';
         expiresIn: '30m',
       },
     }),
+    TrainingModule,
+    MeetingsModule,
+    TrainingRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
