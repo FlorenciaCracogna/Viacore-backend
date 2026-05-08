@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { NotificationsService } from '../notifications.service';
-import { NotificationType } from '../enums/notification-type.enum';
+import { NotificationType } from '../enums/notifications-type.enum';
 
 @Injectable()
 export class NotificationsListener {

@@ -10,7 +10,7 @@ import { Server, Socket } from 'socket.io';
 })
 export class NotificationsGateway implements OnGatewayConnection {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   handleConnection(client: Socket) {
     const userId = client.handshake.auth?.userId;

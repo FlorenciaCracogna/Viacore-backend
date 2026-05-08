@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { NotificationsGateway } from './notifications.gateway';
+import { NotificationsGateway } from './notificatios.gateway';
 import { NotificationsController } from './notifications.controller';
-import { NotificationsListener } from './listeners/notifications.listener';
+import { NotificationsListener } from './listeners/notifications.listeners';
 
 @Module({
   providers: [
