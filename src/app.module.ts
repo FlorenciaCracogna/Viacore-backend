@@ -17,6 +17,7 @@ import { TrainingModule } from './training/training.module';
 import { TrainingService } from './training/training.service';
 import { MeetingsModule } from './meetings/meetings.module';
 import { TrainingRequestModule } from './training-requests/training-request.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
