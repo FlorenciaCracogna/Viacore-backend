@@ -6,7 +6,6 @@ import {
   IsEmail,
   IsEmpty,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -58,29 +57,29 @@ export class CreateUserDto {
   confirmPassword!: string;
 
   @ApiProperty({
-    example: 1133445566,
+    example: '1133445566',
   })
-  @IsNotEmpty()
-  @IsNumber()
-  phone!: number;
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @ApiProperty({
     example: 'Argentina',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  country!: string;
+  country?: string;
 
   @ApiProperty({
     example: 'ViaCore',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(100)
-  companyName!: string;
+  companyName?: string;
 
   @ApiProperty({
     example: 'Buenos Aires',

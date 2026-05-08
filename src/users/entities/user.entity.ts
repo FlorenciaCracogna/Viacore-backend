@@ -5,7 +5,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { Exclude, Expose } from 'class-transformer';
+
 import { Role } from '../enums/roles.enum';
 
 @Entity({
@@ -50,13 +52,15 @@ export class Users {
   @Expose({ groups: ['Get'] })
   @Column({
     type: 'varchar',
+    nullable: true,
   })
-  phone!: number;
+  phone!: string;
 
   @Expose({ groups: ['Get'] })
   @Column({
     type: 'varchar',
     length: 50,
+    nullable: true,
   })
   country!: string;
 
@@ -64,6 +68,7 @@ export class Users {
   @Column({
     type: 'varchar',
     length: 50,
+    nullable: true,
   })
   city!: string;
 
@@ -71,6 +76,7 @@ export class Users {
   @Column({
     type: 'varchar',
     length: 100,
+    nullable: true,
   })
   address!: string;
 
@@ -78,6 +84,7 @@ export class Users {
   @Column({
     type: 'varchar',
     length: 100,
+    nullable: true,
   })
   companyName!: string;
 
@@ -96,10 +103,16 @@ export class Users {
   role?: Role;
 
   @Expose({ groups: ['Get'] })
-  @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
+  @CreateDateColumn({
+    type: 'timestamptz',
+    name: 'created_at',
+  })
   createdAt!: Date;
 
   @Expose({ groups: ['Get'] })
-  @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
+  @UpdateDateColumn({
+    type: 'timestamptz',
+    name: 'updated_at',
+  })
   updatedAt!: Date;
 }
