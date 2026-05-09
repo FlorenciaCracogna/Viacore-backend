@@ -9,7 +9,7 @@ import {
 import { Expose } from 'class-transformer';
 import { Users } from '../../users/entities/user.entity';
 import { RequestStatus } from '../enums/requests-status.enum';
-//import { Trainings } from './training.entity';
+import { Training } from 'src/training/entities/training.entity';
 
 @Entity({
   name: 'TRAINING_REQUESTS',
@@ -45,11 +45,9 @@ export class TrainingRequests {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => Users)
+  @ManyToOne(() => Users, (user) => user.trainingRequests)
   user!: Users;
 
-  /*@ManyToOne(() => Trainings, (training) => training.requests)
-  training!: Trainings;*/
-
-
+  @ManyToOne(() => Training, (training) => training.trainingRequests)
+  training!: Training;
 }

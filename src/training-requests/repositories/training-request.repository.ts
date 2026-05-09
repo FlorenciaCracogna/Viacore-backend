@@ -4,6 +4,7 @@ import { TrainingRequests } from '../entities/training-request.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTrainingRequestDto } from '../dto/create-training-request.dto';
 import { UpdateTrainingRequestDto } from '../dto/update-training-request.dto';
+import { RequestStatus } from '../enums/requests-status.enum';
 
 @Injectable()
 export class TrainingRequestRepository {
@@ -18,12 +19,21 @@ export class TrainingRequestRepository {
     return await this.repository.save(newRequest);
   }
 
-  async findAllRequests(): Promise<TrainingRequests[]> {
-    return await this.repository.find({
-      relations: ['user'],
+  async findAllRequests(
+    skip: number, 
+    take: number, 
+    status?: RequestStatus
+  ): Promise<[TrainingRequests[], number]> 
+  {
+    const whereCondition = status ? { status: status} : {};
+    return await this.repository.findAndCount({
+      where: whereCondition,
+      relations: ['user', 'training'],
       order: {
         createdAt: 'DESC',
-      }
+      },
+      skip,
+      take,
     })
   }
 

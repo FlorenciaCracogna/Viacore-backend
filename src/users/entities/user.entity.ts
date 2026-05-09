@@ -2,12 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { Exclude, Expose } from 'class-transformer';
-
+import { TrainingRequests } from '../../training-requests/entities/training-request.entity';
 import { Role } from '../enums/roles.enum';
 
 @Entity({
@@ -122,4 +123,7 @@ export class Users {
     name: 'updated_at',
   })
   updatedAt!: Date;
+
+  @OneToMany(() => TrainingRequests, (request) => request.user)
+  trainingRequests!: TrainingRequests[];
 }
