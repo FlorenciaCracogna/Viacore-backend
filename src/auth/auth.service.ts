@@ -128,22 +128,15 @@ export class AuthService {
       user =
         this.usersRepository.create({
           email: googleUser.email,
-
           name: googleUser.name,
-
           googleId:
             googleUser.googleId,
 
           phone: '',
-
           country: '',
-
           companyName: '',
-
           city: '',
-
           address: '',
-
           profileCompleted: false,
         });
 
