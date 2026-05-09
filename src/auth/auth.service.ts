@@ -96,6 +96,7 @@ export class AuthService {
       id: foundUser.id,
       email: foundUser.email,
       role: foundUser.role,
+      profileCompleted: foundUser.profileCompleted,
     };
 
     const token =
@@ -142,11 +143,15 @@ export class AuthService {
           city: '',
 
           address: '',
+
+          profileCompleted: false,
         });
 
       await this.usersRepository.save(
         user,
       );
+
+      user = await this.usersRepository.save(user)
 
     } else if (!user.googleId) {
 
@@ -162,6 +167,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
+      profileCompleted: user.profileCompleted,
     };
 
     const token =
