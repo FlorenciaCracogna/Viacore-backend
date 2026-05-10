@@ -86,7 +86,7 @@ export class Users {
     length: 150,
     nullable: true,
   })
-  address!: strig;
+  address!: string;
 
   @Expose({ groups: ['Get'] })
   @Column({
