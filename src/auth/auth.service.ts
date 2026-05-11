@@ -121,28 +121,25 @@ export class AuthService {
   ) {
     let user =
       await this.usersRepository.findOneBy({
-        email: googleUser.email,
+        email:
+          googleUser.email
+          .toLowerCase()
+          .trim(),
       });
 
     if (!user) {
       user =
         this.usersRepository.create({
-          email: googleUser.email,
+          email:
+           googleUser.email
+           .toLowerCase()
+           .trim(),
+
           name: googleUser.name,
           googleId:
             googleUser.googleId,
 
-          phone: '',
-          country: '',
-          companyName: '',
-          city: '',
-          address: '',
-          profileCompleted: false,
         });
-
-      await this.usersRepository.save(
-        user,
-      );
 
       user = await this.usersRepository.save(user)
 
@@ -167,6 +164,8 @@ export class AuthService {
       this.jwtService.sign(payload, {
         expiresIn: '1h',
       });
+
+       console.log("USER AFTER:", user);
 
     return {
       id: user.id,
