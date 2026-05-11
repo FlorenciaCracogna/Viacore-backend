@@ -32,10 +32,9 @@ export class TrainingRepository {
     });
     return training.map((training) => ({
       id: training.id,
-      title: training.title,
-      description: training.description,
-      category: training.category,
       fileResource: training.fileResource,
+      title: training.title,
+      shortDescription: training.shortDescription,
     }));
   }
 
@@ -49,7 +48,14 @@ export class TrainingRepository {
       throw new NotFoundException(`Capacitación con id ${id} no encontrada`);
     }
 
-    return training;
+    return {
+      id: training.id,
+      fileResource: training.fileResource,
+      title: training.title,
+      description: training.description,
+      tagline: training.tagline,
+      includes: training.includes,
+    };
   }
 
   async createTraining(
@@ -87,8 +93,12 @@ export class TrainingRepository {
       if (existingTitles.includes(dataTraining.title)) continue;
       const newTraining = this.trainingOrmRepository.create({
         title: dataTraining.title,
+        shortDescription: dataTraining.shortDescription,
         description: dataTraining.description,
+        tagline: dataTraining.tagline,
+        includes: dataTraining.includes,
         category: dataTraining.category,
+        imgUrl: dataTraining.imgUrl,
       });
 
       trainingToSave.push(newTraining);

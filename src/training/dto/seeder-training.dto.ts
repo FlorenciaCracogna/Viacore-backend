@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class SeedTraining {
   @IsNotEmpty()
@@ -7,7 +7,20 @@ export class SeedTraining {
 
   @IsNotEmpty()
   @IsString()
+  shortDescription!: string;
+
+  @IsNotEmpty()
+  @IsString()
   description!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  tagline!: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @IsString()
+  includes!: string[];
 
   @IsNotEmpty()
   @IsString()
