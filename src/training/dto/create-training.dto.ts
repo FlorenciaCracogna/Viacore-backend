@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class CreateTrainingDto {
   @IsNotEmpty({ message: 'El título de la capacitación es obligatorio' })
@@ -10,6 +16,17 @@ export class CreateTrainingDto {
   })
   title!: string;
 
+  @IsNotEmpty({ message: 'La breve descripción es obligatoria' })
+  @IsString({ message: 'La breve descripción debe ser un texto' })
+  @Length(10, 120, {
+    message: 'La breve descripción debe tener entre 10 y 120 caracteres',
+  })
+  @ApiProperty({
+    description: 'Descripción breve que aparece en la card de la capacitación',
+    example: 'Service ShortDescription Test 01',
+  })
+  shortDescription!: string;
+
   @IsNotEmpty({ message: 'La descripción de la capacitación es obligatoria' })
   @IsString({ message: 'La descripción debe ser un texto' })
   @ApiProperty({
@@ -17,6 +34,32 @@ export class CreateTrainingDto {
     example: 'Service Description Test 01',
   })
   description!: string;
+
+  @IsNotEmpty({ message: 'El tagline es obligatorio' })
+  @IsString({ message: 'El tagline debe ser un texto' })
+  @Length(10, 150, {
+    message: 'El tagline debe tener entre 10 y 150 caracteres',
+  })
+  @ApiProperty({
+    description: 'Frase destacada que aparece en el detalle de la capacitación',
+    example: 'Service Tagline Test 01',
+  })
+  tagline!: string;
+
+  @IsNotEmpty({
+    message: 'El detalle de lo que incluye la capacitación es obligatorio',
+  })
+  @IsArray({ message: 'Los includes deben ser un array' })
+  @IsString({ each: true, message: 'Cada include debe ser un texto' })
+  @ApiProperty({
+    description: 'Lista de ítems que incluye la capacitación',
+    example: [
+      'Service Include Test 01',
+      'Service Include Test 02',
+      'Service Include Test 03',
+    ],
+  })
+  includes!: string[];
 
   @IsNotEmpty({ message: 'La categoría de la capacitación es obligatoria' })
   @IsString({ message: 'La categoría debe ser un texto' })
@@ -26,7 +69,7 @@ export class CreateTrainingDto {
   })
   category!: string;
 
-/*  @IsOptional()
+  @IsOptional()
   @IsString({ message: 'La URL de la imágen debe ser un texto' })
   @ApiProperty({
     description:
@@ -34,5 +77,4 @@ export class CreateTrainingDto {
     example: 'http://......jpg',
   })
   imgUrl?: string;
-*/
 }
