@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { TrainingRequestRepository } from './repositories/training-request.repository';
+
 import { TrainingRequests } from './entities/training-request.entity';
 import { RequestStatus } from './enums/requests-status.enum';
 import type { PaginatedTrainingRequests } from './interfaces/requests-results.interface';
@@ -58,6 +59,10 @@ export class TrainingRequestService {
       );
     }
     return request;
+  }
+
+  async findMyRequests(userId: string) {
+    return await this.repository.findMyRequests(userId);
   }
 
   async update(

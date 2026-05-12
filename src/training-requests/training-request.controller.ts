@@ -23,8 +23,11 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import type { RequestWithUsers } from './interfaces/requests-payloads.interfaces';
+
 import { Role } from '../users/enums/roles.enum';
+
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+
 import { Roles } from 'src/decorator/roles.decorator';
 import type { PaginatedTrainingRequests } from './interfaces/requests-results.interface';
 import { RequestStatus } from './enums/requests-status.enum';
@@ -56,6 +59,27 @@ export class TrainingRequestController {
       training: { id: createTrainingRequestDto.trainingId } 
     };
     return await this.trainingRequestService.create(requestInput, userId);
+  }
+
+  @Get('me')
+  @ApiOperation({
+    summary:
+      'Obtiene las solicitudes del usuario autenticado',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Solicitudes del usuario obtenidas con éxito.',
+  })
+  async findMyRequests(
+    @Req()
+    req: RequestWithUsers,
+  ) {
+    const userId = req.user.id;
+
+    return await this.trainingRequestService.findMyRequests(
+      userId,
+    );
   }
 
   @Get()

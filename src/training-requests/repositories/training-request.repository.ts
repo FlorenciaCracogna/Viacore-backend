@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
+
 import { Repository } from 'typeorm';
+
 import { TrainingRequests } from '../entities/training-request.entity';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { RequestStatus } from '../enums/requests-status.enum';
-import type { 
-  ICreateTrainingRequest, 
-  IUpdateTrainingRequest 
+import type {
+  ICreateTrainingRequest,
+  IUpdateTrainingRequest
 } from '../interfaces/requests-data.interfaces';
 
 
@@ -14,7 +17,7 @@ export class TrainingRequestRepository {
   constructor(
     @InjectRepository(TrainingRequests)
     private readonly repository: Repository<TrainingRequests>,
-  ) {}
+  ) { }
 
   async createRequests(
     data: ICreateTrainingRequest & { user: { id: string } }
@@ -24,8 +27,8 @@ export class TrainingRequestRepository {
   }
 
   async findAllRequests(
-    skip: number, 
-    take: number, 
+    skip: number,
+    take: number,
     status?: RequestStatus
   ): Promise<[TrainingRequests[], number]> {
     const whereCondition = status ? { status: status } : {};
@@ -45,7 +48,19 @@ export class TrainingRequestRepository {
   ): Promise<TrainingRequests | null> {
     return await this.repository.findOne({
       where: { id },
-      relations: ['user', 'training'], 
+      relations: ['user', 'training'],
+    });
+  }
+
+  async findMyRequests(userId: string): Promise<TrainingRequests[]> {
+    return await this.repository.find({
+      where: {
+        user: { id: userId },
+      },
+      relations: ['user', 'training'],
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
@@ -62,4 +77,5 @@ export class TrainingRequestRepository {
   ): Promise<TrainingRequests> {
     return await this.repository.save(request);
   }
+
 }
