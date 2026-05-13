@@ -21,6 +21,10 @@ import { TrainingRequests } from 'src/training-requests/entities/training-reques
 
 import { RequestStatus } from 'src/training-requests/enums/requests-status.enum';
 
+import { Users } from 'src/users/entities/user.entity';
+
+import { EmailService } from 'src/notifications/channels/email/email.service';
+
 @Injectable()
 export class MeetingsService {
   constructor(
@@ -31,6 +35,11 @@ export class MeetingsService {
       TrainingRequests,
     )
     private readonly trainingRequestsRepository: Repository<TrainingRequests>,
+
+    @InjectRepository(Users)
+    private readonly usersRepository: Repository<Users>,
+
+    private readonly emailService: EmailService,
   ) {}
 
   horarios = [
@@ -103,6 +112,22 @@ export class MeetingsService {
     await this.trainingRequestsRepository.save(
       request,
     );
+
+    const user =
+      await this.usersRepository.findOneBy({
+        id: createMeetingDto.targetUserId,
+      });
+
+    if (user) {
+      await this.emailService.sendMeetingCreated(
+        user.email,
+
+        user.companyName ||
+          user.name,
+
+        `${createMeetingDto.date} ${createMeetingDto.time}`,
+      );
+    }
 
     return meeting;
   }
