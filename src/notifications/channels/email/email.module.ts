@@ -32,22 +32,22 @@ import { EmailService } from './email.service';
           from: `"ViaCore" <${process.env.MAIL_USER}>`,
         },
 
-        template: {
-          dir: join(
-            process.cwd(),
-            process.env.NODE_ENV ===
-              'production'
-              ? 'dist/notifications/channels/email/templates'
-              : 'src/notifications/channels/email/templates',
-          ),
+       template: {
+  dir: join(
+    process.cwd(),
+    process.env.NODE_ENV ===
+      'production'
+      ? 'dist/templates'
+      : 'src/notifications/channels/email/templates',
+  ),
 
-          adapter:
-            new HandlebarsAdapter(),
+  adapter:
+    new HandlebarsAdapter(),
 
-          options: {
-            strict: true,
-          },
-        },
+  options: {
+    strict: true,
+  },
+},
       }),
     }),
   ],
