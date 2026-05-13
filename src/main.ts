@@ -46,9 +46,12 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: 'https://estudio-via3-frontend.vercel.app',
+    origin: [
+    'http://localhost:3000',
+    'https://estudio-via3-frontend.vercel.app',
+  ],
     credentials: true,
-  });
+});
 
   app.useGlobalFilters(new TypeOrmExceptionFilter());
 
