@@ -15,35 +15,12 @@ export class EmailService {
     await this.mailerService.sendMail({
       to: email,
 
-      subject: 'Bienvenido a Via3',
+      subject: 'Bienvenido a ViaCore',
 
       template: 'welcome',
 
       context: {
         fullName,
-      },
-    });
-
-    
-  }
-
-  async sendLoginAlert(
-    email: string,
-    fullName: string,
-    ipAddress?: string,
-    device?: string,
-  ) {
-    await this.mailerService.sendMail({
-      to: email,
-
-      subject: 'Nuevo inicio de sesión',
-
-      template: 'login-alert',
-
-      context: {
-        fullName,
-        ipAddress,
-        device,
       },
     });
   }
@@ -67,40 +44,40 @@ export class EmailService {
     });
   }
 
-  async sendPaymentRefunded(
+  async sendTrainingRequestCreated(
     email: string,
-    fullName: string,
-    amount: number,
+    companyName: string,
   ) {
     await this.mailerService.sendMail({
       to: email,
 
-      subject: 'Reembolso realizado',
+      subject:
+        'Nueva solicitud de capacitación',
 
-      template: 'payment-refunded',
+      template:
+        'training-request-created',
 
       context: {
-        fullName,
-        amount,
+        companyName,
       },
     });
   }
 
-  async sendPaymentFailed(
+  async sendMeetingCreated(
     email: string,
-    fullName: string,
-    amount: number,
+    companyName: string,
+    meetingDate: string,
   ) {
     await this.mailerService.sendMail({
       to: email,
 
-      subject: 'Pago fallido',
+      subject: 'Reunión agendada',
 
-      template: 'payment-failed',
+      template: 'meeting-created',
 
       context: {
-        fullName,
-        amount,
+        companyName,
+        meetingDate,
       },
     });
   }

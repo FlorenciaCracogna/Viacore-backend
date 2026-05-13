@@ -21,6 +21,8 @@ import { JwtService } from '@nestjs/jwt';
 
 import { Role } from 'src/users/enums/roles.enum';
 
+import { EmailService } from 'src/notifications/channels/email/email.service';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -28,76 +30,129 @@ export class AuthService {
     private readonly usersRepository: Repository<Users>,
 
     private readonly jwtService: JwtService,
+
+    private readonly emailService: EmailService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const foundUser = await this.usersRepository.findOneBy({
-      email: createUserDto.email,
-    });
+    const foundUser =
+      await this.usersRepository.findOneBy({
+        email: createUserDto.email,
+      });
 
     if (foundUser) {
-      throw new BadRequestException('El usuario ya existe');
+      throw new BadRequestException(
+        'El usuario ya existe',
+      );
     }
 
-    const hashedPassword = await bcrypt.hash(
-      createUserDto.password,
-      10,
-    );
+    const hashedPassword =
+      await bcrypt.hash(
+        createUserDto.password,
+        10,
+      );
 
-    const newUser = this.usersRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-      role: Role.User,
-      profileCompleted: true,
-    });
+    const newUser =
+      this.usersRepository.create({
+        ...createUserDto,
 
-    return await this.usersRepository.save(newUser);
+        password: hashedPassword,
+
+        role: Role.User,
+
+        profileCompleted: true,
+      });
+
+    const savedUser =
+      await this.usersRepository.save(
+        newUser,
+      );
+
+    try {
+      await this.emailService.sendWelcomeEmail(
+        savedUser.email,
+        savedUser.name,
+      );
+
+      console.log(
+        'WELCOME EMAIL ENVIADO',
+      );
+    } catch (error) {
+      console.log(
+        'ERROR MAIL:',
+        error,
+      );
+    }
+
+    return savedUser;
   }
 
-  async signIn(credentials: LoginUserDto) {
-    const foundUser = await this.usersRepository.findOneBy({
-      email: credentials.email,
-    });
+  async signIn(
+    credentials: LoginUserDto,
+  ) {
+    const foundUser =
+      await this.usersRepository.findOneBy({
+        email: credentials.email,
+      });
 
     if (!foundUser) {
-      throw new BadRequestException('Credenciales inválidas');
+      throw new BadRequestException(
+        'Credenciales inválidas',
+      );
     }
 
-    const matchingPassword = await bcrypt.compare(
-      credentials.password,
-      foundUser.password,
-    );
+    const matchingPassword =
+      await bcrypt.compare(
+        credentials.password,
+        foundUser.password,
+      );
 
     if (!matchingPassword) {
-      throw new BadRequestException('Credenciales inválidas');
+      throw new BadRequestException(
+        'Credenciales inválidas',
+      );
     }
 
     const payload = {
       id: foundUser.id,
+
       email: foundUser.email,
+
       role: foundUser.role,
-      profileCompleted: foundUser.profileCompleted,
+
+      profileCompleted:
+        foundUser.profileCompleted,
     };
 
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '1h',
-    });
+    const token =
+      this.jwtService.sign(payload, {
+        expiresIn: '1h',
+      });
 
     return {
       id: foundUser.id,
+
       role: foundUser.role,
+
       login: true,
+
       access_token: token,
     };
   }
 
-  async findOrCreateGoogleUser(googleUser: {
-    email: string;
-    name: string;
-    googleId: string;
-  }) {
+  async findOrCreateGoogleUser(
+    googleUser: {
+      email: string;
+
+      name: string;
+
+      googleId: string;
+    },
+  ) {
     const normalizedEmail =
-      googleUser.email.toLowerCase().trim();
+      googleUser.email
+        .toLowerCase()
+        .trim();
 
     // Emails admins permitidos
     const adminEmails = [
@@ -109,56 +164,92 @@ export class AuthService {
         normalizedEmail,
       );
 
-    let user = await this.usersRepository.findOneBy({
-      email: normalizedEmail,
-    });
+    let user =
+      await this.usersRepository.findOneBy({
+        email: normalizedEmail,
+      });
 
     if (!user) {
       user = this.usersRepository.create({
         email: normalizedEmail,
+
         name: googleUser.name,
-        googleId: googleUser.googleId,
+
+        googleId:
+          googleUser.googleId,
 
         role: isAdmin
           ? Role.Admin
           : Role.User,
 
-        profileCompleted: isAdmin
-          ? true
-          : false,
+        profileCompleted:
+          isAdmin
+            ? true
+            : false,
       });
 
-      user = await this.usersRepository.save(user);
+      user =
+        await this.usersRepository.save(
+          user,
+        );
+
+      try {
+        await this.emailService.sendWelcomeEmail(
+          user.email,
+          user.name,
+        );
+
+        console.log(
+          'WELCOME EMAIL GOOGLE ENVIADO',
+        );
+      } catch (error) {
+        console.log(
+          'ERROR MAIL GOOGLE:',
+          error,
+        );
+      }
     } else {
       if (!user.googleId) {
-        user.googleId = googleUser.googleId;
+        user.googleId =
+          googleUser.googleId;
       }
 
       // Si el email está autorizado como admin
       if (isAdmin) {
         user.role = Role.Admin;
 
-        user.profileCompleted = true;
+        user.profileCompleted =
+          true;
       }
 
-      await this.usersRepository.save(user);
+      await this.usersRepository.save(
+        user,
+      );
     }
 
     const payload = {
       id: user.id,
+
       email: user.email,
+
       role: user.role,
-      profileCompleted: user.profileCompleted,
+
+      profileCompleted:
+        user.profileCompleted,
     };
 
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '1h',
-    });
+    const token =
+      this.jwtService.sign(payload, {
+        expiresIn: '1h',
+      });
 
     return {
       id: user.id,
+
       role: user.role,
+
       login: true,
+
       access_token: token,
     };
   }
