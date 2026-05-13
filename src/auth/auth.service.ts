@@ -2,7 +2,6 @@
 import {
   BadRequestException,
   Injectable,
-  // UnauthorizedException,
 } from '@nestjs/common';
 
 import { Repository } from 'typeorm';
@@ -22,6 +21,12 @@ import { JwtService } from '@nestjs/jwt';
 
 import { Role } from 'src/users/enums/roles.enum';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
+import { UserRegisteredEvent } from 'src/notifications/events/user-registered.event';
+
+import { UserLoggedInEvent } from 'src/notifications/events/user-logged-in.event';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -29,6 +34,8 @@ export class AuthService {
     private readonly usersRepository: Repository<Users>,
 
     private readonly jwtService: JwtService,
+
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(
@@ -41,7 +48,7 @@ export class AuthService {
 
     if (foundUser) {
       throw new BadRequestException(
-        'User with this email already exists',
+        'El usuario ya existe',
       );
     }
 
@@ -63,6 +70,16 @@ export class AuthService {
         newUser,
       );
 
+    this.eventEmitter.emit(
+      'user.registered',
+
+      new UserRegisteredEvent(
+        savedUser.id,
+        savedUser.email,
+        savedUser.name,
+      ),
+    );
+
     return savedUser;
   }
 
@@ -76,7 +93,7 @@ export class AuthService {
 
     if (!foundUser) {
       throw new BadRequestException(
-        'Bad credentials',
+        'Credenciales inválidas',
       );
     }
 
@@ -88,7 +105,7 @@ export class AuthService {
 
     if (!matchingPassword) {
       throw new BadRequestException(
-        'Bad credentials',
+        'Credenciales inválidas',
       );
     }
 
@@ -96,13 +113,24 @@ export class AuthService {
       id: foundUser.id,
       email: foundUser.email,
       role: foundUser.role,
-      profileCompleted: foundUser.profileCompleted,
+      profileCompleted:
+        foundUser.profileCompleted,
     };
 
     const token =
       this.jwtService.sign(payload, {
         expiresIn: '1h',
       });
+
+    this.eventEmitter.emit(
+      'user.logged-in',
+
+      new UserLoggedInEvent(
+        foundUser.id,
+        foundUser.email,
+        foundUser.name,
+      ),
+    );
 
     return {
       id: foundUser.id,
@@ -123,29 +151,34 @@ export class AuthService {
       await this.usersRepository.findOneBy({
         email:
           googleUser.email
-          .toLowerCase()
-          .trim(),
+            .toLowerCase()
+            .trim(),
       });
+
+    let isNewUser = false;
 
     if (!user) {
       user =
         this.usersRepository.create({
           email:
-           googleUser.email
-           .toLowerCase()
-           .trim(),
+            googleUser.email
+              .toLowerCase()
+              .trim(),
 
           name: googleUser.name,
-
           googleId:
             googleUser.googleId,
 
+          role: Role.User,
         });
 
-      user = await this.usersRepository.save(user)
+      user =
+        await this.usersRepository.save(
+          user,
+        );
 
+      isNewUser = true;
     } else if (!user.googleId) {
-
       user.googleId =
         googleUser.googleId;
 
@@ -158,13 +191,36 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
-      profileCompleted: user.profileCompleted,
+      profileCompleted:
+        user.profileCompleted,
     };
 
     const token =
       this.jwtService.sign(payload, {
         expiresIn: '1h',
       });
+
+    if (isNewUser) {
+      this.eventEmitter.emit(
+        'user.registered',
+
+        new UserRegisteredEvent(
+          user.id,
+          user.email,
+          user.name,
+        ),
+      );
+    }
+
+    this.eventEmitter.emit(
+      'user.logged-in',
+
+      new UserLoggedInEvent(
+        user.id,
+        user.email,
+        user.name,
+      ),
+    );
 
     return {
       id: user.id,

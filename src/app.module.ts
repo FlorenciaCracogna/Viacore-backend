@@ -20,6 +20,9 @@ import { MeetingsModule } from './meetings/meetings.module';
 import { TrainingRequestModule } from './training-requests/training-request.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PaymentsModule } from './payments/payments.module';
+// import { BullModule } from '@nestjs/bullmq';
+import { Notification } from './notifications/entities/notification.entity';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -47,6 +50,13 @@ import { PaymentsModule } from './payments/payments.module';
     MeetingsModule,
     TrainingRequestModule,
     PaymentsModule,
+    // BullModule.forRoot({
+    //   connection: {
+    //     host: 'localhost',
+    //     port: 6379,
+    //   },
+    // }),
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
