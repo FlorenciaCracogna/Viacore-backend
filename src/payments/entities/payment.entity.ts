@@ -22,8 +22,11 @@ export class Payment {
   @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
   status!: PaymentStatus;
 
-  @Column()
+  @Column({ nullable: true })
   paymentMethod!: string;
+
+  @Column({ nullable: true })
+  mercadoPagoId!: string;
 
   @CreateDateColumn()
   createdAt!: Date;
