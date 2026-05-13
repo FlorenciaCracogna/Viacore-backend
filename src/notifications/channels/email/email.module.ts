@@ -32,7 +32,9 @@ import { EmailService } from './email.service';
       template: {
         dir: join(
           process.cwd(),
-          'src/modules/notifications/channels/email/templates',
+          process.env.NODE_ENV === 'production'
+            ? 'dist/notifications/channels/email/templates'
+            : 'src/notifications/channels/email/templates',
         ),
 
         adapter: new HandlebarsAdapter(),
