@@ -21,6 +21,11 @@ import { JwtService } from '@nestjs/jwt';
 
 import { Role } from 'src/users/enums/roles.enum';
 
+// import para las notifications
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
+import { UserRegisteredEvent } from '../notifications/events/user-registered.event';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -28,6 +33,9 @@ export class AuthService {
     private readonly usersRepository: Repository<Users>,
 
     private readonly jwtService: JwtService,
+
+    // Inyección del EventEmitter para emitir eventos de notificación
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(
@@ -110,6 +118,17 @@ export class AuthService {
       this.jwtService.sign(payload, {
         expiresIn: '1h',
       });
+
+    // Emitir un evento de notificación cuando un usuario se registre
+    this.eventEmitter.emit(
+      'user.registered',
+
+      new UserRegisteredEvent(
+        foundUser.id,
+        foundUser.email,
+        foundUser.name,
+      ),
+    );
 
     return {
       id: foundUser.id,
