@@ -19,6 +19,7 @@ import { TrainingService } from './training/training.service';
 import { MeetingsModule } from './meetings/meetings.module';
 import { TrainingRequestModule } from './training-requests/training-request.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     TrainingModule,
     MeetingsModule,
     TrainingRequestModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
