@@ -2,7 +2,6 @@
 import {
   BadRequestException,
   Injectable,
-  // UnauthorizedException,
 } from '@nestjs/common';
 
 import { Repository } from 'typeorm';
@@ -106,8 +105,11 @@ export class AuthService {
 
     const payload = {
       id: foundUser.id,
+
       email: foundUser.email,
+
       role: foundUser.role,
+
       profileCompleted:
         foundUser.profileCompleted,
     };
@@ -130,8 +132,11 @@ export class AuthService {
 
     return {
       id: foundUser.id,
+
       role: foundUser.role,
+
       login: true,
+
       access_token: token,
     };
   }
@@ -180,8 +185,11 @@ export class AuthService {
 
     const payload = {
       id: user.id,
+
       email: user.email,
+
       role: user.role,
+
       profileCompleted:
         user.profileCompleted,
     };
@@ -193,8 +201,11 @@ export class AuthService {
 
     return {
       id: user.id,
+
       role: user.role,
+
       login: true,
+
       access_token: token,
     };
   }
