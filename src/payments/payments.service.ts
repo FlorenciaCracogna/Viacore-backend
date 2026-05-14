@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import MercadoPagoConfig, {
   Preference,
@@ -39,13 +43,18 @@ export class PaymentsService {
       throw new NotFoundException('Solicitud de capacitación no encontrada');
     }
 
-    const depositAmount =
-      Number(this.configService.get('MP_DEPOSIT_AMOUNT')) || 30000;
+    const amount = Number(trainingRequest.estimatedPrice);
+
+    if (!amount || amount <= 0) {
+      throw new BadRequestException(
+        'El precio de la capacitación no es válido',
+      );
+    }
 
     const payment = await this.paymentsRepository.create({
       user: trainingRequest.user,
       trainingRequest: trainingRequest,
-      amount: depositAmount,
+      amount: amount,
     });
 
     const response = await this.preference.create({
@@ -53,9 +62,9 @@ export class PaymentsService {
         items: [
           {
             id: payment.id,
-            title: `Seña - ${trainingRequest.training.title}`,
+            title: `${trainingRequest.training.title}`,
             quantity: 1,
-            unit_price: depositAmount,
+            unit_price: amount,
             currency_id: 'ARS',
           },
         ],
@@ -104,6 +113,16 @@ export class PaymentsService {
         status as PaymentStatus,
       );
     }
-    return { received: true };
+    return { received: true, message: 'Pago recibido' };
+  }
+
+  async findById(id: string) {
+    const payment = await this.paymentsRepository.findById(id);
+    if (!payment) throw new NotFoundException('Pago no encontrado');
+    return payment;
+  }
+
+  findByUserId(userId: string) {
+    return this.paymentsRepository.findByUserId(userId);
   }
 }

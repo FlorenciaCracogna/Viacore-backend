@@ -1,10 +1,20 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.paymentsService.findByUserId(userId);
+  }
+
+  @Get(':id')
+  findById(@Param('id') id: string) {
+    return this.paymentsService.findById(id);
+  }
 
   @Post('create-preference')
   createPreference(@Body() dto: CreatePaymentDto) {

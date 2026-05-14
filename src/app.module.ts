@@ -15,10 +15,7 @@ import { AuthModule } from './auth/auth.module';
 
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 
-import {
-  ConfigModule,
-  ConfigService,
-} from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import typeorm from './config/typeorm';
 
@@ -35,15 +32,8 @@ import { TrainingService } from './training/training.service';
 import { MeetingsModule } from './meetings/meetings.module';
 
 import { TrainingRequestModule } from './training-requests/training-request.module';
-<<<<<<< HEAD
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { PaymentsModule } from './payments/payments.module';
-import { BullModule } from '@nestjs/bullmq';
-import { Notification } from './notifications/entities/notification.entity';
-=======
-
->>>>>>> 852ec88f9d4e127044f4852fe8407dbb3b48fe2a
 import { NotificationsModule } from './notifications/notifications.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -62,9 +52,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
 
-      useFactory: (
-        config: ConfigService,
-      ) => config.get('typeorm')!,
+      useFactory: (config: ConfigService) => config.get('typeorm')!,
     }),
 
     JwtModule.register({
@@ -84,49 +72,24 @@ import { NotificationsModule } from './notifications/notifications.module';
     MeetingsModule,
 
     TrainingRequestModule,
-<<<<<<< HEAD
-    PaymentsModule,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          url: config.get('REDIS_URL'),
-        },
-      }),
-    }),
-=======
->>>>>>> 852ec88f9d4e127044f4852fe8407dbb3b48fe2a
     NotificationsModule,
+    PaymentsModule,
   ],
 
   controllers: [AppController],
 
   providers: [AppService],
 })
-export class AppModule
-  implements
-    NestModule,
-    OnApplicationBootstrap
-{
-  constructor(
-    private readonly trainingService: TrainingService,
-  ) {}
+export class AppModule implements NestModule, OnApplicationBootstrap {
+  constructor(private readonly trainingService: TrainingService) {}
 
-  configure(
-    consumer: MiddlewareConsumer,
-  ) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('*');
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
   }
 
   async onApplicationBootstrap() {
     await this.trainingService.addTraining();
 
-    console.log(
-      'Capacitaciones cargadas',
-    );
+    console.log('Capacitaciones cargadas');
   }
 }

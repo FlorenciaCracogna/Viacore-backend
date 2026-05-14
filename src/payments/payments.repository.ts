@@ -17,13 +17,46 @@ export class PaymentsRepository {
   }
 
   async findById(id: string) {
-    return await this.paymentOrmRepository.findOne({ where: { id } });
+    return await this.paymentOrmRepository.findOne({
+      where: { id },
+      relations: ['user', 'trainingRequest'],
+      select: {
+        id: true,
+        amount: true,
+        status: true,
+        paymentMethod: true,
+        mercadoPagoId: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    });
   }
 
   async findByUserId(userId: string) {
     return await this.paymentOrmRepository.find({
       where: { user: { id: userId } },
       relations: ['user', 'trainingRequest'],
+      select: {
+        id: true,
+        amount: true,
+        status: true,
+        paymentMethod: true,
+        mercadoPagoId: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
     });
   }
 
