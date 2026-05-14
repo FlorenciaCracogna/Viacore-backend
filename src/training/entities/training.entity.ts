@@ -14,7 +14,7 @@ import { TrainingRequests } from '../../training-requests/entities/training-requ
 import { FileResource } from '../../file-resource/entities/file-resource.entity';
 
 @Entity({
-  name: 'training',
+  name: 'TRAINING',
 })
 export class Training {
   @PrimaryGeneratedColumn('uuid')
