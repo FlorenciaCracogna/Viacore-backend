@@ -34,6 +34,8 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 
 import { NotificationType } from 'src/notifications/enums/notification-type.enum';
 
+import { NotificationsGateway } from 'src/notifications/gateways/notifications.gateway';
+
 @Injectable()
 export class TrainingRequestService {
   constructor(
@@ -45,6 +47,8 @@ export class TrainingRequestService {
     private readonly emailService: EmailService,
 
     private readonly notificationsService: NotificationsService,
+
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(
@@ -388,27 +392,73 @@ export class TrainingRequestService {
 
     if (request.user?.id) {
 
-      let notificationType =
-        NotificationType.TRAINING_REQUEST_ACCEPTED;
+      let notificationType:
+        NotificationType;
 
-      if (
-        newStatus === RequestStatus.CANCELLED
-      ) {
-        notificationType =
-          NotificationType.TRAINING_REQUEST_REJECTED;
+      switch (newStatus) {
+
+        case RequestStatus.IN_REVIEW:
+
+          notificationType =
+            NotificationType.REQUEST_IN_REVIEW;
+
+          break;
+
+        case RequestStatus.AWAITING_PAYMENT:
+
+          notificationType =
+            NotificationType.REQUEST_AWAITING_PAYMENT;
+
+          break;
+
+        case RequestStatus.SCHEDULED:
+
+          notificationType =
+            NotificationType.REQUEST_SCHEDULED;
+
+          break;
+
+        case RequestStatus.CONFIRMED:
+
+          notificationType =
+            NotificationType.REQUEST_CONFIRMED;
+
+          break;
+
+        case RequestStatus.CANCELLED:
+
+          notificationType =
+            NotificationType.REQUEST_CANCELLED;
+
+          break;
+
+        default:
+
+          notificationType =
+            NotificationType.REQUEST_IN_REVIEW;
       }
 
       await this.notificationsService.create({
-
-        title: 'Estado actualizado',
-
-        message:
-          `Tu solicitud cambió a estado ${newStatus}`,
 
         type: notificationType,
 
         userId: request.user.id,
       });
+
+      // =========================
+      // WEBSOCKET REALTIME
+      // =========================
+
+      this.notificationsGateway.emitNotificationToUser(
+        request.user.id,
+        {
+          type: notificationType,
+          title: 'Nueva notificación',
+          message: `Estado actualizado a ${newStatus}`,
+          status: newStatus,
+          requestId: request.id,
+        },
+      );
     }
 
     return updatedRequest;
