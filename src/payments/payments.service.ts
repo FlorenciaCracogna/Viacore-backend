@@ -22,6 +22,7 @@ import { TrainingRequests } from 'src/training-requests/entities/training-reques
 import { Repository } from 'typeorm';
 
 import { PaymentStatus } from './enums/payment-status.enum';
+import { RequestStatus } from 'src/training-requests/enums/requests-status.enum';
 
 import { EmailService } from 'src/notifications/channels/email/email.service';
 
@@ -238,6 +239,13 @@ export class PaymentsService {
 
           userId: payment.user.id,
         });
+      }
+      // Actualizo el estado de la trainingRequest
+      if (status === 'approved') {
+        await this.trainingRequestOrmRepository.update(
+          payment.trainingRequest.id,
+          { status: RequestStatus.CONFIRMED },
+        );
       }
     }
 
