@@ -15,7 +15,10 @@ import { AuthModule } from './auth/auth.module';
 
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import {
+  ConfigModule,
+  ConfigService,
+} from '@nestjs/config';
 
 import typeorm from './config/typeorm';
 
@@ -32,10 +35,15 @@ import { TrainingService } from './training/training.service';
 import { MeetingsModule } from './meetings/meetings.module';
 
 import { TrainingRequestModule } from './training-requests/training-request.module';
+
 import { NotificationsModule } from './notifications/notifications.module';
+
 import { PaymentsModule } from './payments/payments.module';
+
 import { ChatModule } from './chat/chat.module';
 import { BullModule } from '@nestjs/bull';
+
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -54,7 +62,10 @@ import { BullModule } from '@nestjs/bull';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
 
-      useFactory: (config: ConfigService) => config.get('typeorm')!,
+      useFactory: (
+        config: ConfigService,
+      ) =>
+        config.get('typeorm')!,
     }),
 
     JwtModule.register({
@@ -81,24 +92,40 @@ import { BullModule } from '@nestjs/bull';
       }),
     }),
     NotificationsModule,
+
     PaymentsModule,
+
     ChatModule,
+
+    ContactModule,
   ],
 
   controllers: [AppController],
 
   providers: [AppService],
 })
-export class AppModule implements NestModule, OnApplicationBootstrap {
-  constructor(private readonly trainingService: TrainingService) {}
+export class AppModule
+  implements
+    NestModule,
+    OnApplicationBootstrap
+{
+  constructor(
+    private readonly trainingService: TrainingService,
+  ) {}
 
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+  configure(
+    consumer: MiddlewareConsumer,
+  ) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*');
   }
 
   async onApplicationBootstrap() {
     await this.trainingService.addTraining();
 
-    console.log('Capacitaciones cargadas');
+    console.log(
+      'Capacitaciones cargadas',
+    );
   }
 }
