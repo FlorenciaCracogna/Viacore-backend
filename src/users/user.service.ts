@@ -1,91 +1,256 @@
 import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  OnApplicationBootstrap,
+  BadRequestException,
+  Injectable,
 } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UsersModule } from './users/user.module';
-import { AuthModule } from './auth/auth.module';
-import { LoggerMiddleware } from './middlewares/logger.middleware';
+
+import { Repository } from 'typeorm';
+
+import { Users } from 'src/users/entities/user.entity';
+
+import { InjectRepository } from '@nestjs/typeorm';
+
 import {
-  ConfigModule,
-  ConfigService,
-} from '@nestjs/config';
-import typeorm from './config/typeorm';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
-import { FileResourceModule } from './file-resource/file-resource.module';
-import { TrainingModule } from './training/training.module';
-import { TrainingService } from './training/training.service';
-import { MeetingsModule } from './meetings/meetings.module';
-import { TrainingRequestModule } from './training-requests/training-request.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { PaymentsModule } from './payments/payments.module';
-import { ChatModule } from './chat/chat.module';
-import { BullModule } from '@nestjs/bull';
-import { ContactModule } from './contact/contact.module';
-@Module({
-  imports: [
-    UsersModule,
-    AuthModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.development.env',
-      load: [typeorm],
-    }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (
-        config: ConfigService,
-      ) =>
-        config.get('typeorm')!,
-    }),
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: '30m',
-      },
-    }),
-    FileResourceModule,
-    TrainingModule,
-    MeetingsModule,
-    TrainingRequestModule,
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        redis: config.get('REDIS_URL') as string,
-      }),
-    }),
-    NotificationsModule,
-    PaymentsModule,
-    ChatModule,
-    ContactModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService],
-})
-export class AppModule
-  implements
-    NestModule,
-    OnApplicationBootstrap
-{
+  CreateUserDto,
+  LoginUserDto,
+} from 'src/users/dto/create-user.dto';
+
+import * as bcrypt from 'bcrypt';
+
+import { JwtService } from '@nestjs/jwt';
+
+import { Role } from 'src/users/enums/roles.enum';
+
+import { EmailService } from 'src/notifications/channels/email/email.service';
+
+@Injectable()
+export class AuthService {
   constructor(
-    private readonly trainingService: TrainingService,
+    @InjectRepository(Users)
+    private readonly usersRepository: Repository<Users>,
+
+    private readonly jwtService: JwtService,
+
+    private readonly emailService: EmailService,
   ) {}
-  configure(
-    consumer: MiddlewareConsumer,
-  ) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('*');
+
+  async create(createUserDto: CreateUserDto) {
+    const foundUser =
+      await this.usersRepository.findOneBy({
+        email: createUserDto.email,
+      });
+
+    if (foundUser) {
+      throw new BadRequestException(
+        'Este correo ya está registrado. Por favor, inicia sesión.',
+      );
+    }
+
+    const hashedPassword =
+      await bcrypt.hash(
+        createUserDto.password,
+        10,
+      );
+
+    const newUser =
+      this.usersRepository.create({
+        ...createUserDto,
+
+        password: hashedPassword,
+
+        role: Role.User,
+
+        profileCompleted: true,
+      });
+
+    const savedUser =
+      await this.usersRepository.save(
+        newUser,
+      );
+
+    try {
+      await this.emailService.sendWelcomeEmail(
+        savedUser.email,
+        savedUser.name,
+      );
+
+      console.log(
+        'WELCOME EMAIL ENVIADO',
+      );
+    } catch (error) {
+      console.log(
+        'ERROR MAIL:',
+        error,
+      );
+    }
+
+    return savedUser;
   }
-  async onApplicationBootstrap() {
-    await this.trainingService.addTraining();
-    console.log(
-      'Capacitaciones cargadas',
-    );
+
+  async signIn(
+    credentials: LoginUserDto,
+  ) {
+    const foundUser =
+      await this.usersRepository.findOneBy({
+        email: credentials.email,
+      });
+
+    if (!foundUser) {
+      throw new BadRequestException(
+        'Credenciales inválidas',
+      );
+    }
+
+    const matchingPassword =
+      await bcrypt.compare(
+        credentials.password,
+        foundUser.password,
+      );
+
+    if (!matchingPassword) {
+      throw new BadRequestException(
+        'Credenciales inválidas',
+      );
+    }
+
+    const payload = {
+      id: foundUser.id,
+
+      email: foundUser.email,
+
+      role: foundUser.role,
+
+      profileCompleted:
+        foundUser.profileCompleted,
+    };
+
+    const token =
+      this.jwtService.sign(payload, {
+        expiresIn: '1h',
+      });
+
+    return {
+      id: foundUser.id,
+
+      role: foundUser.role,
+
+      login: true,
+
+      access_token: token,
+    };
+  }
+
+  async findOrCreateGoogleUser(
+    googleUser: {
+      email: string;
+
+      name: string;
+
+      googleId: string;
+    },
+  ) {
+    const normalizedEmail =
+      googleUser.email
+        .toLowerCase()
+        .trim();
+
+    // Emails admins permitidos
+    const adminEmails = [
+      'colmenares8093@gmail.com',
+      'admin.viacore@gmail.com',
+    ];
+
+    const isAdmin =
+      adminEmails.includes(
+        normalizedEmail,
+      );
+
+    let user =
+      await this.usersRepository.findOneBy({
+        email: normalizedEmail,
+      });
+
+    if (!user) {
+      user = this.usersRepository.create({
+        email: normalizedEmail,
+
+        name: googleUser.name,
+
+        googleId:
+          googleUser.googleId,
+
+        role: isAdmin
+          ? Role.Admin
+          : Role.User,
+
+        profileCompleted:
+          isAdmin
+            ? true
+            : false,
+      });
+
+      user =
+        await this.usersRepository.save(
+          user,
+        );
+
+      try {
+        await this.emailService.sendWelcomeEmail(
+          user.email,
+          user.name,
+        );
+
+        console.log(
+          'WELCOME EMAIL GOOGLE ENVIADO',
+        );
+      } catch (error) {
+        console.log(
+          'ERROR MAIL GOOGLE:',
+          error,
+        );
+      }
+    } else {
+      if (!user.googleId) {
+        user.googleId =
+          googleUser.googleId;
+      }
+
+      // Si el email está autorizado como admin
+      if (isAdmin) {
+        user.role = Role.Admin;
+
+        user.profileCompleted =
+          true;
+      }
+
+      await this.usersRepository.save(
+        user,
+      );
+    }
+
+    const payload = {
+      id: user.id,
+
+      email: user.email,
+
+      role: user.role,
+
+      profileCompleted:
+        user.profileCompleted,
+    };
+
+    const token =
+      this.jwtService.sign(payload, {
+        expiresIn: '1h',
+      });
+
+    return {
+      id: user.id,
+
+      role: user.role,
+
+      login: true,
+
+      access_token: token,
+    };
   }
 }
