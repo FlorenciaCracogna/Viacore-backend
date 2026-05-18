@@ -162,5 +162,4 @@ export class EmailService {
     });
     await this.sendEmail(email, 'Recibimos tu consulta', html);
   }
-  }
 }
