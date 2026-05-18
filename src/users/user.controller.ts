@@ -12,24 +12,36 @@ import {
   SerializeOptions,
   UseInterceptors,
 } from '@nestjs/common';
+
 import { UsersService } from './user.service';
+
 import { UpdateUserDto } from './dto/update-user.dto';
+
 import { CompleteProfileDto } from './dto/create-user.dto';
+
 import { AuthGuard } from '../auth/guards/auth.guard';
+
 import { Role } from 'src/auth/roles.enum';
+
 import { Roles } from '../decorator/roles.decorator';
+
 import { RolesGuard } from '../auth/guards/roles.guard';
+
 import {
   ApiBearerAuth,
   ApiTags,
 } from '@nestjs/swagger';
+
 @ApiBearerAuth('Bearer')
+
 @ApiTags('Users')
+
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
   ) {}
+
   @Get()
   @UseInterceptors(
     ClassSerializerInterceptor,
@@ -39,6 +51,7 @@ export class UsersController {
   @UseGuards(AuthGuard, RolesGuard)
   findAll(
     @Query('page') page: string,
+
     @Query('limit') limit: string,
   ) {
     if (limit && page) {
@@ -47,8 +60,10 @@ export class UsersController {
         +limit,
       );
     }
+
     return this.usersService.findAll();
   }
+
   @Get(':id')
   @UseInterceptors(
     ClassSerializerInterceptor,
@@ -57,6 +72,7 @@ export class UsersController {
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
+
   @Put(':id')
   @UseInterceptors(
     ClassSerializerInterceptor,
@@ -65,6 +81,7 @@ export class UsersController {
   @UseGuards(AuthGuard)
   update(
     @Param('id') id: string,
+
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.update(
@@ -72,6 +89,7 @@ export class UsersController {
       updateUserDto,
     );
   }
+
   @Patch('complete-profile/:id')
   @UseInterceptors(
     ClassSerializerInterceptor,
@@ -80,6 +98,7 @@ export class UsersController {
   @UseGuards(AuthGuard)
   completeProfile(
     @Param('id') id: string,
+
     @Body()
     completeProfileDto: CompleteProfileDto,
   ) {
@@ -88,6 +107,7 @@ export class UsersController {
       completeProfileDto,
     );
   }
+
   @Delete(':id')
   @ApiBearerAuth()
   @Roles(Role.Admin, Role.User)
