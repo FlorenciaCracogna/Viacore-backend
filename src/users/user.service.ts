@@ -12,13 +12,14 @@ import { Users } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CompleteProfileDto } from './dto/create-user.dto';
 
-
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
+    private readonly jwtService: JwtService,
   ) { }
 
   async findAll(
