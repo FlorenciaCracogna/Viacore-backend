@@ -1,125 +1,91 @@
 import {
-  Injectable,
-  NotFoundException,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  OnApplicationBootstrap,
 } from '@nestjs/common';
-
-import { InjectRepository } from '@nestjs/typeorm';
-
-import { Repository } from 'typeorm';
-
-import { Users } from './entities/user.entity';
-
-import { UpdateUserDto } from './dto/update-user.dto';
-import { CompleteProfileDto } from './dto/create-user.dto';
-
-import { JwtService } from '@nestjs/jwt';
-
-@Injectable()
-export class UsersService {
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UsersModule } from './users/user.module';
+import { AuthModule } from './auth/auth.module';
+import { LoggerMiddleware } from './middlewares/logger.middleware';
+import {
+  ConfigModule,
+  ConfigService,
+} from '@nestjs/config';
+import typeorm from './config/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { FileResourceModule } from './file-resource/file-resource.module';
+import { TrainingModule } from './training/training.module';
+import { TrainingService } from './training/training.service';
+import { MeetingsModule } from './meetings/meetings.module';
+import { TrainingRequestModule } from './training-requests/training-request.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { PaymentsModule } from './payments/payments.module';
+import { ChatModule } from './chat/chat.module';
+import { BullModule } from '@nestjs/bull';
+import { ContactModule } from './contact/contact.module';
+@Module({
+  imports: [
+    UsersModule,
+    AuthModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.development.env',
+      load: [typeorm],
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (
+        config: ConfigService,
+      ) =>
+        config.get('typeorm')!,
+    }),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions: {
+        expiresIn: '30m',
+      },
+    }),
+    FileResourceModule,
+    TrainingModule,
+    MeetingsModule,
+    TrainingRequestModule,
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        redis: config.get('REDIS_URL') as string,
+      }),
+    }),
+    NotificationsModule,
+    PaymentsModule,
+    ChatModule,
+    ContactModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule
+  implements
+    NestModule,
+    OnApplicationBootstrap
+{
   constructor(
-    @InjectRepository(Users)
-    private readonly usersRepository: Repository<Users>,
-    private readonly jwtService: JwtService,
-  ) { }
-
-  async findAll(
-    page: number = 1,
-    limit: number = 5,
+    private readonly trainingService: TrainingService,
+  ) {}
+  configure(
+    consumer: MiddlewareConsumer,
   ) {
-    const [usuarios, total] = await this.usersRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { id: 'DESC' }
-    });
-    return {
-      data: usuarios,
-      total: total,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page
-    };
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*');
   }
-
-  async findOne(id: string) {
-    return await this.usersRepository.findOne({
-      where: { id },
-    });
-  }
-
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ) {
-    const user =
-      await this.usersRepository.findOneBy({
-        id,
-      });
-
-    if (!user) {
-      throw new NotFoundException(
-        `User with id ${id} not found`,
-      );
-    }
-
-    await this.usersRepository.update(
-      id,
-      updateUserDto,
+  async onApplicationBootstrap() {
+    await this.trainingService.addTraining();
+    console.log(
+      'Capacitaciones cargadas',
     );
-
-    return await this.usersRepository.findOneBy({
-      id,
-    });
-  }
-
-  async completeProfile(
-  id: string,
-  completeProfileDto: CompleteProfileDto,
-) {
-  const user = await this.usersRepository.findOneBy({ id });
-  if (!user) {
-    throw new NotFoundException(`User with id ${id} not found`);
-  }
-
-  await this.usersRepository.update(id, {
-    ...completeProfileDto,
-    profileCompleted: true,
-  });
-
-  const updatedUser = await this.usersRepository.findOneBy({ id });
-
-  const payload = {
-    id: updatedUser.id,
-    email: updatedUser.email,
-    role: updatedUser.role,
-    profileCompleted: updatedUser.profileCompleted,
-  };
-
-  const token = this.jwtService.sign(payload, { expiresIn: '1h' });
-  console.log('TOKEN GENERADO:', token);
-  return { access_token: token };
-}
-    return await this.usersRepository.findOneBy({
-      id,
-    });
-  }
-
-  async remove(id: string) {
-    const user =
-      await this.usersRepository.findOneBy({
-        id,
-      });
-
-    if (!user) {
-      throw new NotFoundException(
-        `User with id ${id} not found`,
-      );
-    }
-
-    await this.usersRepository.update(id, {
-      isActive: false,
-    });
-
-    return {
-      message: `User with id ${id} deactivated successfully`,
-    };
   }
 }
