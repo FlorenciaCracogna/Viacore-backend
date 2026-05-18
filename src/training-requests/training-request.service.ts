@@ -176,7 +176,7 @@ export class TrainingRequestService {
       throw new BadRequestException(
         `No se puede modificar esta solicitud porque su estado actual es 
         "${existingRequest.status}". Si necesitas realizar cambios, por favor
-         crea una nueva solicitud.`,
+        crea una nueva solicitud.`,
       );
     }
 
@@ -230,9 +230,12 @@ export class TrainingRequestService {
       throw new BadRequestException('No se puede modificar una solicitud que ya fue cancelada.');
     }
     if (
-      request.status === RequestStatus.SCHEDULED &&
-      newStatus !== RequestStatus.CANCELLED &&
-      newStatus !== RequestStatus.AWAITING_PAYMENT
+      request.status ===
+        RequestStatus.SCHEDULED &&
+      newStatus !==
+        RequestStatus.CANCELLED &&
+      newStatus !==
+        RequestStatus.AWAITING_PAYMENT
     ) {
       throw new BadRequestException(
         'La capacitación ya está agendada. Solo se permite cancelarla o pasarla a Esperando Pago.',
@@ -245,24 +248,43 @@ export class TrainingRequestService {
       throw new BadRequestException('Una solicitud en proceso no puede regresar a estado Pendiente.');
     }
     request.status = newStatus;
-    const updatedRequest = await this.repository.saveRequest(request);
-    this.sendStatusNotifications(updatedRequest, newStatus).catch((err) => 
-      console.error('Error enviando notificaciones:', err)
+    const updatedRequest =
+      await this.repository.saveRequest(
+        request,
+      );
+
+    this.sendStatusNotifications(
+      updatedRequest,
+      newStatus,
+    ).catch((err) =>
+      console.error(
+        'Error enviando notificaciones:',
+        err,
+      ),
     );
 
     return updatedRequest;
   }
 
-  private async sendStatusNotifications(request: any, newStatus: RequestStatus) {
+  private async sendStatusNotifications(
+    request: TrainingRequests,
+    newStatus: RequestStatus,
+  ) {
     if (!request.user) return;
+
     if (request.user.email) {
-      const emailConfig = this.getEmailConfigForStatus(newStatus);
-      if (emailConfig) {
-        await this.emailService.sendEmail(request.user.email, emailConfig.subject, emailConfig.html);
-      }
+      await this.sendStatusEmail(
+        request,
+        newStatus,
+      );
     }
+
     if (request.user.id) {
-      const notifConfig = this.getNotificationConfigForStatus(newStatus);
+      const notifConfig =
+        this.getNotificationConfigForStatus(
+          newStatus,
+        );
+
       await this.notificationsService.create({
         type: notifConfig.type,
         userId: request.user.id,
@@ -270,64 +292,136 @@ export class TrainingRequestService {
         message: notifConfig.message,
       });
 
-      this.notificationsGateway.emitNotificationToUser(request.user.id, {
-        type: notifConfig.type,
-        title: notifConfig.title,
-        message: notifConfig.message,
-        status: newStatus,
-        requestId: request.id,
-      });
+      this.notificationsGateway.emitNotificationToUser(
+        request.user.id,
+        {
+          type: notifConfig.type,
+          title: notifConfig.title,
+          message: notifConfig.message,
+          status: newStatus,
+          requestId: request.id,
+        },
+      );
     }
   }
 
-  private getEmailConfigForStatus(status: RequestStatus) {
-    const configs = {
-      [RequestStatus.IN_REVIEW]: { 
-        subject: 'Solicitud en revisión', html: `
-        <h2>Tu solicitud está en revisión</h2><p>El equipo de 
-        ViaCore está evaluando tu capacitación.</p>` },
-      [RequestStatus.AWAITING_PAYMENT]: { 
-        subject: `
-        Pago pendiente', html: '<h2>Tu solicitud requiere un pago</h2>
-        <p>La capacitación fue aprobada y está esperando confirmación de pago.</p>` },
-      [RequestStatus.SCHEDULED]: { 
-        subject: `
-        Capacitación agendada', html: '<h2>Tu capacitación fue agendada</h2>
-        <p>Pronto recibirás más información sobre la reunión.</p>` },
-      [RequestStatus.CONFIRMED]: { 
-        subject: `Capacitación confirmada', html: '<h2>Tu capacitación fue confirmada</h2>
-        <p>El proceso fue confirmado correctamente.</p>` },
-      [RequestStatus.CANCELLED]: { 
-        subject: `
-        Solicitud cancelada', html: '<h2>Tu solicitud fue cancelada</h2>
-        <p>La capacitación fue cancelada.</p>` },
-    };
-    return configs[status];
+  private async sendStatusEmail(
+    request: TrainingRequests,
+    status: RequestStatus,
+  ) {
+    const companyName =
+      request.user.companyName ||
+      request.user.name;
+
+    switch (status) {
+      case RequestStatus.IN_REVIEW:
+        await this.emailService.sendTrainingInReview(
+          request.user.email,
+          companyName,
+        );
+        break;
+
+      case RequestStatus.AWAITING_PAYMENT:
+        await this.emailService.sendTrainingAwaitingPayment(
+          request.user.email,
+          companyName,
+        );
+        break;
+
+      case RequestStatus.SCHEDULED:
+        await this.emailService.sendTrainingScheduled(
+          request.user.email,
+          companyName,
+        );
+        break;
+
+      case RequestStatus.CONFIRMED:
+        await this.emailService.sendTrainingConfirmed(
+          request.user.email,
+          companyName,
+        );
+        break;
+
+      case RequestStatus.CANCELLED:
+        await this.emailService.sendTrainingCancelled(
+          request.user.email,
+          companyName,
+        );
+        break;
+
+      default:
+        break;
+    }
   }
 
-  private getNotificationConfigForStatus(status: RequestStatus) {
+  private getNotificationConfigForStatus(
+    status: RequestStatus,
+  ) {
     const configs = {
-      [RequestStatus.IN_REVIEW]: { 
-        type: NotificationType.REQUEST_IN_REVIEW, title: `
-        Solicitud en revisión', message: 'Tu solicitud está siendo evaluada 
-        por el equipo de ViaCore.` },
-      [RequestStatus.AWAITING_PAYMENT]: { 
-        type: NotificationType.REQUEST_AWAITING_PAYMENT, title: `
-        Pago pendiente', message: 'La capacitación fue aprobada y 
-        está esperando confirmación de pago.` },
-      [RequestStatus.SCHEDULED]: { 
-        type: NotificationType.REQUEST_SCHEDULED, title: `
-        Capacitación agendada', message: 'Tu capacitación fue agendada correctamente.` },
-      [RequestStatus.CONFIRMED]: { 
-        type: NotificationType.REQUEST_CONFIRMED, title: `
-        Capacitación confirmada', message: 'Tu capacitación fue confirmada exitosamente.` },
-      [RequestStatus.CANCELLED]: { 
-        type: NotificationType.REQUEST_CANCELLED, title: `
-        Solicitud cancelada', message: 'La solicitud fue cancelada.` },
+      [RequestStatus.IN_REVIEW]: {
+        type:
+          NotificationType.REQUEST_IN_REVIEW,
+
+        title: 'Solicitud en revisión',
+
+        message:
+          'Tu solicitud está siendo evaluada por el equipo de ViaCore.',
+      },
+
+      [RequestStatus.AWAITING_PAYMENT]:
+        {
+          type:
+            NotificationType.REQUEST_AWAITING_PAYMENT,
+
+          title: 'Pago pendiente',
+
+          message:
+            'La capacitación fue aprobada y está esperando confirmación de pago.',
+        },
+
+      [RequestStatus.SCHEDULED]: {
+        type:
+          NotificationType.REQUEST_SCHEDULED,
+
+        title: 'Capacitación agendada',
+
+        message:
+          'Tu capacitación fue agendada correctamente.',
+      },
+
+      [RequestStatus.CONFIRMED]: {
+        type:
+          NotificationType.REQUEST_CONFIRMED,
+
+        title:
+          'Capacitación confirmada',
+
+        message:
+          'Tu capacitación fue confirmada exitosamente.',
+      },
+
+      [RequestStatus.CANCELLED]: {
+        type:
+          NotificationType.REQUEST_CANCELLED,
+
+        title:
+          'Solicitud cancelada',
+
+        message:
+          'La solicitud fue cancelada.',
+      },
     };
-    return configs[status] || { 
-      type: NotificationType.REQUEST_IN_REVIEW, 
-      title: 'Actualización', message: `El estado cambió a ${status}` };
+
+    return (
+      configs[status] || {
+        type:
+          NotificationType.REQUEST_IN_REVIEW,
+
+        title: 'Actualización',
+
+        message: `El estado cambió a ${status}`,
+      }
+    );
   }
 
   async remove(
