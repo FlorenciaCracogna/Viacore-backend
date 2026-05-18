@@ -71,25 +71,32 @@ export class UsersService {
   }
 
   async completeProfile(
-    id: string,
-    completeProfileDto: CompleteProfileDto,
-  ) {
-    const user =
-      await this.usersRepository.findOneBy({
-        id,
-      });
+  id: string,
+  completeProfileDto: CompleteProfileDto,
+) {
+  const user = await this.usersRepository.findOneBy({ id });
+  if (!user) {
+    throw new NotFoundException(`User with id ${id} not found`);
+  }
 
-    if (!user) {
-      throw new NotFoundException(
-        `User with id ${id} not found`,
-      );
-    }
+  await this.usersRepository.update(id, {
+    ...completeProfileDto,
+    profileCompleted: true,
+  });
 
-    await this.usersRepository.update(id, {
-      ...completeProfileDto,
-      profileCompleted: true,
-    });
+  const updatedUser = await this.usersRepository.findOneBy({ id });
 
+  const payload = {
+    id: updatedUser.id,
+    email: updatedUser.email,
+    role: updatedUser.role,
+    profileCompleted: updatedUser.profileCompleted,
+  };
+
+  const token = this.jwtService.sign(payload, { expiresIn: '1h' });
+  console.log('TOKEN GENERADO:', token);
+  return { access_token: token };
+}
     return await this.usersRepository.findOneBy({
       id,
     });
