@@ -1,17 +1,74 @@
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm'; // Importamos DataSource
 import { TrainingRequests } from '../entities/training-request.entity';
-import { InjectRepository } from '@nestjs/typeorm';
+import { RequestStatus } from '../enums/requests-status.enum';
+import type {
+  ICreateTrainingRequest,
+  IUpdateTrainingRequest
+} from '../interfaces/requests-data.interfaces';
 
 @Injectable()
-export class TrainingRequestRepository {
-  constructor(
-    @InjectRepository(TrainingRequests)
-    private readonly repository: Repository<TrainingRequests>,
-  ) {}
+export class TrainingRequestRepository extends Repository<TrainingRequests> {
+  constructor(private dataSource: DataSource) {
+    super(TrainingRequests, dataSource.createEntityManager());
+  }
 
-  async createRequest(data: any) {
-    const newRequest = this.repository.create(data);
-    return await this.repository.save(newRequest);
+  async createRequests(
+    data: ICreateTrainingRequest & { user: { id: string }; estimatedPrice: number }
+  ): Promise<TrainingRequests> {
+    const newRequest = this.create(data);
+    return await this.save(newRequest);
+  }
+
+  async findAllRequests(
+    skip: number,
+    take: number,
+    status?: RequestStatus
+  ): Promise<[TrainingRequests[], number]> {
+    const whereCondition = status ? { status: status } : {};
+    return await this.findAndCount({
+      where: whereCondition,
+      relations: ['user', 'training', 'files', 'meetings'],
+      order: {
+        createdAt: 'DESC',
+      },
+      skip,
+      take,
+    });
+  }
+
+  async findRequestById(
+    id: string
+  ): Promise<TrainingRequests | null> {
+    return await this.findOne({
+      where: { id },
+      relations: ['user', 'training', 'files', 'meetings'],
+    });
+  }
+
+  async findMyRequests(userId: string): Promise<TrainingRequests[]> {
+    return await this.find({
+      where: {
+        user: { id: userId },
+      },
+      relations: ['user', 'training', 'files', 'meetings'],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  async updateRequest(
+    id: string,
+    data: IUpdateTrainingRequest & { estimatedPrice?: number }
+  ): Promise<TrainingRequests | null> {
+    await this.update(id, data);
+    return await this.findRequestById(id);
+  }
+
+  async saveRequest(
+    request: TrainingRequests
+  ): Promise<TrainingRequests> {
+    return await this.save(request);
   }
 }

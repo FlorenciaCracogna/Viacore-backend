@@ -1,20 +1,20 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
+
 import { Exclude } from 'class-transformer';
+
 import {
   IsEmail,
   IsEmpty,
   IsNotEmpty,
-  IsNumber,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
   MinLength,
   Validate,
 } from 'class-validator';
-import { MatchPassword } from 'src/helpers/matchPassword';
-import { Role } from '../enums/roles.enum';
-import { IsEnum } from 'class-validator';
 
+import { MatchPassword } from 'src/helpers/matchPassword';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -23,12 +23,16 @@ export class CreateUserDto {
   })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email!: string;
 
+  @ApiProperty({
+    example: 'Daniel Medina',
+  })
   @IsNotEmpty()
   @IsString()
-  @MinLength(3)
-  name: string;
+  @MinLength(2)
+  @MaxLength(50)
+  name!: string;
 
   @ApiProperty({
     example: 'Password21@',
@@ -36,41 +40,92 @@ export class CreateUserDto {
   @IsNotEmpty()
   @MinLength(8)
   @MaxLength(15)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$^&*])/, {
-    message:
-      'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.',
-  })
-  password: string;
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[.,!@#$%^&*()_\-+=\[\]{};:'"\\|<>/?`~]).+$/,
+    {
+      message:
+        'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.',
+    },
+  )
+  password!: string;
 
   @ApiProperty({
     example: 'Password21@',
   })
+  @IsNotEmpty()
   @Validate(MatchPassword, ['password'])
-  confirmPassword: string;
+  confirmPassword!: string;
 
-  @IsNotEmpty()
-  @IsNumber()
-  phone: number;
+@ApiProperty({
+  example: '+5493434123456',
+})
+@IsOptional()
+@IsString()
+@Matches(/^\+?[1-9]\d{7,14}$/, {
+  message:
+    'Phone must be a valid international phone number',
+})
+phone?: string;
 
-  @IsNotEmpty()
+  @ApiProperty({
+    example: 'Argentina',
+  })
+  @IsOptional()
   @IsString()
-  @MinLength(5)
-  @MaxLength(20)
-  country: string;
+  @MinLength(2)
+  @MaxLength(50)
+  country?: string;
 
-  @IsNotEmpty()
+  @ApiProperty({
+    example: 'ViaCore',
+  })
+  @IsOptional()
   @IsString()
-  @MinLength(3)
-  @MaxLength(20)
-  companyName: string;
+  @MinLength(2)
+  @MaxLength(50)
+  companyName?: string;
+
+  @ApiProperty({
+    example: 'Buenos Aires',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(50)
+  city?: string;
+
+  @ApiProperty({
+    example: 'Av. Corrientes 1234',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(50)
+  address?: string;
 
   @Exclude()
   @IsEmpty()
   isActive?: boolean;
 
+  @Exclude()
+  @IsEmpty()
+  profileCompleted?: boolean;
 }
 
-export class LoginUserDto extends PickType(CreateUserDto, [
-  'password',
-  'email',
-]) {}
+export class LoginUserDto extends PickType(
+  CreateUserDto,
+  ['password', 'email'] as const,
+) {}
+
+export class CompleteProfileDto extends PickType(
+  CreateUserDto,
+  [
+    'phone',
+    'country',
+    'companyName',
+    'city',
+    'address',
+  ] as const,
+) {}

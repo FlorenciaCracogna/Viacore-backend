@@ -15,11 +15,9 @@ export const typeormConfig: DataSourceOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: { rejectUnauthorized: false },
 
-  dropSchema: true,
+  dropSchema: false,
   synchronize: true,
 
   entities: ['dist/**/*.entity{.ts,.js}'],

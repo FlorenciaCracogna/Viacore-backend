@@ -1,72 +1,109 @@
-// calendly.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+
 import { HttpService } from '@nestjs/axios';
+
 import { firstValueFrom } from 'rxjs';
 
 export interface CreateOneOffEventDto {
   name: string;
-  startTime: string; // ISO 8601, ej: "2026-05-20T10:00:00Z"
+
+  startTime: string;
+
   endTime: string;
+
   guestEmail: string;
+
   guestName: string;
-  location?: string;
 }
 
 @Injectable()
 export class CalendlyService {
   private readonly logger = new Logger(CalendlyService.name);
-  private readonly userUri = process.env.CALENDLY_USER_URI;
+
+  // Se cachea el user URI para evitar solicitarlo
+  // en cada request a la API de Calendly.
+  private userUri: string | null = null;
 
   constructor(private readonly httpService: HttpService) {}
 
-  /** Obtiene los event types disponibles del usuario */
-  async getEventTypes(): Promise<any[]> {
+  // Se obtiene automáticamente el user URI desde Calendly.
+  // Esto evita depender de variables manuales en .env.
+  async getCurrentUserUri(): Promise<string> {
+    if (this.userUri) {
+      return this.userUri;
+    }
+
     const { data } = await firstValueFrom(
-      this.httpService.get('/event_types', {
-        params: { user: this.userUri },
-      }),
+      this.httpService.get('/users/me'),
     );
-    return data.collection;
+
+    this.userUri = data.resource.uri;
+
+    return this.userUri!;
   }
 
-  /** Crea un one-off event (link personalizado) */
   async createOneOffEvent(dto: CreateOneOffEventDto): Promise<any> {
-    const payload = {
-      name: dto.name,
-      host: this.userUri,
-      start_time: dto.startTime,
-      end_time: dto.endTime,
-      guests: [{ email: dto.guestEmail, name: dto.guestName }],
-      ...(dto.location && {
-        location: { type: 'custom', location: dto.location },
-      }),
-    };
+    try {
+      const userUri = await this.getCurrentUserUri();
 
-    const { data } = await firstValueFrom(
-      this.httpService.post('/one_off_event_types', payload),
-    );
+      // Calendly requiere duración y configuración de fecha
+      // para crear eventos dinámicos tipo one-off.
+      const payload = {
+        name: dto.name,
 
-    this.logger.log(`Evento creado: ${data.resource?.scheduling_url}`);
-    return data.resource;
+        host: userUri,
+
+        duration: 30,
+
+        date_setting: {
+          type: 'date_range',
+
+          start_date: dto.startTime.split('T')[0],
+
+          end_date: dto.endTime.split('T')[0],
+        },
+
+        end_time: dto.endTime,
+
+        // Temporalmente usamos Zoom integrado automáticamente.
+        location: {
+          kind: 'zoom_conference',
+        },
+      };
+
+      const { data } = await firstValueFrom(
+        this.httpService.post('/one_off_event_types', payload),
+      );
+
+      this.logger.log(
+        `Scheduling URL creada: ${data.resource?.scheduling_url}`,
+      );
+
+      return data.resource;
+    } catch (error: any) {
+      this.logger.error(
+        error?.response?.data || error.message,
+      );
+
+      throw new InternalServerErrorException(
+        'Error al crear evento en Calendly',
+      );
+    }
   }
 
-  /** Lista eventos programados */
-  async getScheduledEvents(status: 'active' | 'canceled' = 'active'): Promise<any[]> {
-    const { data } = await firstValueFrom(
-      this.httpService.get('/scheduled_events', {
-        params: { user: this.userUri, status },
-      }),
-    );
-    return data.collection;
-  }
+  // Se deja preparado el manejo de webhooks para futuras
+// sincronizaciones automáticas entre Calendly y el backend.
+async handleWebhook(payload: any) {
+  this.logger.log(
+    `Webhook recibido desde Calendly: ${payload?.event}`,
+  );
 
-  /** Cancela un evento por su UUID */
-  async cancelEvent(eventUuid: string, reason?: string): Promise<void> {
-    await firstValueFrom(
-      this.httpService.post(`/scheduled_events/${eventUuid}/cancellation`, {
-        reason: reason ?? 'Cancelado por el sistema',
-      }),
-    );
-    this.logger.log(`Evento ${eventUuid} cancelado`);
-  }
+  return {
+    received: true,
+  };
+}
 }

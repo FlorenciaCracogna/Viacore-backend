@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
+
 import { CalendlyService } from './calendly.service';
+import { CalendlyController } from './calendly.controller';
 
 @Module({
   imports: [
@@ -12,7 +14,15 @@ import { CalendlyService } from './calendly.service';
       },
     }),
   ],
+
+  controllers: [
+    // Se agrega el controller para manejar webhooks
+    // y sincronización futura con Calendly.
+    CalendlyController,
+  ],
+
   providers: [CalendlyService],
+
   exports: [CalendlyService],
 })
 export class CalendlyModule {}

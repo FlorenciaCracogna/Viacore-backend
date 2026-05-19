@@ -4,17 +4,24 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
+  DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
-import { Expose } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import { Users } from '../../users/entities/user.entity';
 import { RequestStatus } from '../enums/requests-status.enum';
-//import { Trainings } from './training.entity';
+import { Training } from '../../training/entities/training.entity';
+import { FileResource } from '../../file-resource/entities/file-resource.entity';
+import { Meetings } from '../../meetings/entities/meeting.entity';
+import { Payment } from 'src/payments/entities/payment.entity';
 
+@Exclude()
 @Entity({
   name: 'TRAINING_REQUESTS',
 })
 export class TrainingRequests {
+
   @Expose({ groups: ['Get'] })
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -35,21 +42,43 @@ export class TrainingRequests {
   @Column({
     type: 'enum',
     enum: RequestStatus,
-    default: RequestStatus.PENDING
+    default: RequestStatus.PENDING,
   })
   status!: RequestStatus;
 
+  @Expose({ groups: ['Get'] })
   @CreateDateColumn()
   createdAt!: Date;
 
+  @Expose({ groups: ['Get'] })
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @ManyToOne(() => Users)
+  @Expose({ groups: ['Get'] })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  estimatedPrice?: number;
+
+  @DeleteDateColumn()
+  deletedAt!: Date;
+
+  @Expose({ groups: ['Get'] })
+  @ManyToOne(() => Users, (user) => user.trainingRequests)
   user!: Users;
 
-  /*@ManyToOne(() => Trainings, (training) => training.requests)
-  training!: Trainings;*/
+  @Expose({ groups: ['Get'] })
+  @ManyToOne(() => Training, (training) => training.trainingRequests)
+  training!: Training;
 
+  @Expose({ groups: ['Get'] })
+  @OneToMany(() => FileResource, (file) => file.trainingRequest)
+  files!: FileResource[];
+
+  @Expose({ groups: ['Get'] })
+  //@OneToMany(() => Meetings, (meeting) => meeting.trainingRequest)
+  meetings!: Meetings[];
+
+  @Expose({ groups: ['Get'] })
+  @OneToMany(() => Payment, (payment) => payment.trainingRequest)
+  payments!: Payment[];
 
 }

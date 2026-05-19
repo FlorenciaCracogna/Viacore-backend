@@ -1,5 +1,8 @@
 export enum RequestStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
+PENDING = 'pending',
+  IN_REVIEW = 'in_review',
+  AWAITING_PAYMENT = 'awaiting_payment',
+  SCHEDULED = 'scheduled',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled'     
 }
