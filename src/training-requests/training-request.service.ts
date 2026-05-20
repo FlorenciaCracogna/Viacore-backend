@@ -38,6 +38,7 @@ import { NotificationsGateway } from 'src/notifications/gateways/notifications.g
 
 @Injectable()
 export class TrainingRequestService {
+
   constructor(
     private readonly repository: TrainingRequestRepository,
 
@@ -55,6 +56,7 @@ export class TrainingRequestService {
     data: ICreateTrainingRequest,
     userId: string,
   ): Promise<TrainingRequests> {
+
     let price = 0;
 
     if (data.participantsCount <= 10) {
@@ -82,6 +84,7 @@ export class TrainingRequestService {
       });
 
     if (user) {
+
       await this.emailService.sendTrainingRequestCreated(
         user.email,
         user.companyName || user.name,
@@ -96,6 +99,7 @@ export class TrainingRequestService {
     limit: number = 10,
     status?: RequestStatus,
   ): Promise<PaginatedTrainingRequests> {
+
     const skip = (page - 1) * limit;
 
     const [requests, total] =
@@ -127,12 +131,14 @@ export class TrainingRequestService {
   async findOne(
     id: string,
   ): Promise<TrainingRequests> {
+
     const request =
       await this.repository.findRequestById(
         id,
       );
 
     if (!request) {
+
       throw new NotFoundException(
         `Solicitud con ID ${id} no encontrada`,
       );
@@ -144,6 +150,7 @@ export class TrainingRequestService {
   async findMyRequests(
     userId: string,
   ): Promise<TrainingRequests[]> {
+
     return await this.repository.findMyRequests(
       userId,
     );
@@ -154,6 +161,7 @@ export class TrainingRequestService {
     data: IUpdateTrainingRequest,
     currentUser: UserPayloads,
   ): Promise<TrainingRequests> {
+
     const existingRequest =
       await this.findOne(id);
 
@@ -161,6 +169,7 @@ export class TrainingRequestService {
       currentUser.role !== Role.Admin &&
       existingRequest.user.id !== currentUser.id
     ) {
+
       throw new ForbiddenException(
         'No tienes permiso para editar esta solicitud.',
       );
@@ -173,10 +182,10 @@ export class TrainingRequestService {
       existingRequest.status !==
         RequestStatus.IN_REVIEW
     ) {
+
       throw new BadRequestException(
         `No se puede modificar esta solicitud porque su estado actual es 
-        "${existingRequest.status}". Si necesitas realizar cambios, por favor
-         crea una nueva solicitud.`,
+"${existingRequest.status}".`,
       );
     }
 
@@ -192,6 +201,7 @@ export class TrainingRequestService {
       data.participantsCount !==
         existingRequest.participantsCount
     ) {
+
       let price = 0;
 
       if (data.participantsCount <= 10)
@@ -213,8 +223,9 @@ export class TrainingRequestService {
       );
 
     if (!updatedRequest) {
-      throw new NotFoundException(`
-        No se pudo encontrar la solicitud con ID ${id} para retornar los cambios.`,
+
+      throw new NotFoundException(
+        `No se pudo encontrar la solicitud con ID ${id}.`,
       );
     }
 
@@ -225,115 +236,241 @@ export class TrainingRequestService {
     id: string,
     newStatus: RequestStatus,
   ): Promise<TrainingRequests> {
-    const request = await this.findOne(id);
-    if (request.status === RequestStatus.CANCELLED) {
-      throw new BadRequestException('No se puede modificar una solicitud que ya fue cancelada.');
-    }
+
+    const request =
+      await this.findOne(id);
+
     if (
-      request.status === RequestStatus.SCHEDULED &&
-      newStatus !== RequestStatus.CANCELLED &&
-      newStatus !== RequestStatus.AWAITING_PAYMENT
+      request.status ===
+      RequestStatus.CANCELLED
     ) {
+
       throw new BadRequestException(
-        'La capacitación ya está agendada. Solo se permite cancelarla o pasarla a Esperando Pago.',
+        'No se puede modificar una solicitud cancelada.',
       );
     }
+
     if (
-      newStatus === RequestStatus.PENDING &&
-      request.status !== RequestStatus.PENDING
+      request.status ===
+        RequestStatus.SCHEDULED &&
+      newStatus !==
+        RequestStatus.CANCELLED &&
+      newStatus !==
+        RequestStatus.AWAITING_PAYMENT
     ) {
-      throw new BadRequestException('Una solicitud en proceso no puede regresar a estado Pendiente.');
+
+      throw new BadRequestException(
+        'La capacitación ya está agendada.',
+      );
     }
+
+    if (
+      newStatus ===
+        RequestStatus.PENDING &&
+      request.status !==
+        RequestStatus.PENDING
+    ) {
+
+      throw new BadRequestException(
+        'No puede volver a pendiente.',
+      );
+    }
+
     request.status = newStatus;
-    const updatedRequest = await this.repository.saveRequest(request);
-    this.sendStatusNotifications(updatedRequest, newStatus).catch((err) => 
-      console.error('Error enviando notificaciones:', err)
+
+    const updatedRequest =
+      await this.repository.saveRequest(
+        request,
+      );
+
+    this.sendStatusNotifications(
+      updatedRequest,
+      newStatus,
+    ).catch((err) =>
+      console.error(
+        'Error enviando notificaciones:',
+        err,
+      ),
     );
 
     return updatedRequest;
   }
 
-  private async sendStatusNotifications(request: any, newStatus: RequestStatus) {
+  private async sendStatusNotifications(
+    request: any,
+    newStatus: RequestStatus,
+  ) {
+
     if (!request.user) return;
+
     if (request.user.email) {
-      const emailConfig = this.getEmailConfigForStatus(newStatus);
-      if (emailConfig) {
-        await this.emailService.sendEmail(request.user.email, emailConfig.subject, emailConfig.html);
+
+      switch (newStatus) {
+
+        case RequestStatus.IN_REVIEW:
+
+          await this.emailService.sendRequestInReview(
+            request.user.email,
+            request.user.name,
+          );
+
+          break;
+
+        case RequestStatus.AWAITING_PAYMENT:
+
+          await this.emailService.sendAwaitingPayment(
+            request.user.email,
+            request.user.name,
+          );
+
+          break;
+
+        case RequestStatus.SCHEDULED:
+
+          await this.emailService.sendTrainingScheduled(
+            request.user.email,
+            request.user.name,
+          );
+
+          break;
+
+        case RequestStatus.CONFIRMED:
+
+          await this.emailService.sendTrainingConfirmed(
+            request.user.email,
+            request.user.name,
+          );
+
+          break;
+
+        case RequestStatus.CANCELLED:
+
+          await this.emailService.sendTrainingCancelled(
+            request.user.email,
+            request.user.name,
+          );
+
+          break;
       }
     }
-    if (request.user.id) {
-      const notifConfig = this.getNotificationConfigForStatus(newStatus);
+
+    const notifConfig =
+      this.getNotificationConfigForStatus(
+        newStatus,
+      );
+
+    if (
+      request.user.id &&
+      notifConfig
+    ) {
+
       await this.notificationsService.create({
         type: notifConfig.type,
+
         userId: request.user.id,
+
         title: notifConfig.title,
+
         message: notifConfig.message,
       });
 
-      this.notificationsGateway.emitNotificationToUser(request.user.id, {
-        type: notifConfig.type,
-        title: notifConfig.title,
-        message: notifConfig.message,
-        status: newStatus,
-        requestId: request.id,
-      });
+      this.notificationsGateway.emitNotificationToUser(
+        request.user.id,
+        {
+          type: notifConfig.type,
+
+          title: notifConfig.title,
+
+          message: notifConfig.message,
+
+          status: newStatus,
+
+          requestId: request.id,
+        },
+      );
     }
   }
 
-  private getEmailConfigForStatus(status: RequestStatus) {
-    const configs = {
-      [RequestStatus.IN_REVIEW]: { 
-        subject: 'Solicitud en revisión', html: `
-        <h2>Tu solicitud está en revisión</h2><p>El equipo de 
-        ViaCore está evaluando tu capacitación.</p>` },
-      [RequestStatus.AWAITING_PAYMENT]: { 
-        subject: `
-        Pago pendiente', html: '<h2>Tu solicitud requiere un pago</h2>
-        <p>La capacitación fue aprobada y está esperando confirmación de pago.</p>` },
-      [RequestStatus.SCHEDULED]: { 
-        subject: `
-        Capacitación agendada', html: '<h2>Tu capacitación fue agendada</h2>
-        <p>Pronto recibirás más información sobre la reunión.</p>` },
-      [RequestStatus.CONFIRMED]: { 
-        subject: `Capacitación confirmada', html: '<h2>Tu capacitación fue confirmada</h2>
-        <p>El proceso fue confirmado correctamente.</p>` },
-      [RequestStatus.CANCELLED]: { 
-        subject: `
-        Solicitud cancelada', html: '<h2>Tu solicitud fue cancelada</h2>
-        <p>La capacitación fue cancelada.</p>` },
-    };
-    return configs[status];
-  }
+  private getNotificationConfigForStatus(
+    status: RequestStatus,
+  ) {
 
-  private getNotificationConfigForStatus(status: RequestStatus) {
     const configs = {
-      [RequestStatus.IN_REVIEW]: { 
-        type: NotificationType.REQUEST_IN_REVIEW, title: `
-        Solicitud en revisión', message: 'Tu solicitud está siendo evaluada 
-        por el equipo de ViaCore.` },
-      [RequestStatus.AWAITING_PAYMENT]: { 
-        type: NotificationType.REQUEST_AWAITING_PAYMENT, title: `
-        Pago pendiente', message: 'La capacitación fue aprobada y 
-        está esperando confirmación de pago.` },
-      [RequestStatus.SCHEDULED]: { 
-        type: NotificationType.REQUEST_SCHEDULED, title: `
-        Capacitación agendada', message: 'Tu capacitación fue agendada correctamente.` },
-      [RequestStatus.CONFIRMED]: { 
-        type: NotificationType.REQUEST_CONFIRMED, title: `
-        Capacitación confirmada', message: 'Tu capacitación fue confirmada exitosamente.` },
-      [RequestStatus.CANCELLED]: { 
-        type: NotificationType.REQUEST_CANCELLED, title: `
-        Solicitud cancelada', message: 'La solicitud fue cancelada.` },
+      [RequestStatus.IN_REVIEW]: {
+        type:
+          NotificationType.REQUEST_IN_REVIEW,
+
+        title:
+          'Solicitud en revisión',
+
+        message:
+          'Tu solicitud está siendo evaluada por el equipo de ViaCore.',
+      },
+
+      [RequestStatus.AWAITING_PAYMENT]: {
+        type:
+          NotificationType.REQUEST_AWAITING_PAYMENT,
+
+        title:
+          'Pago pendiente',
+
+        message:
+          'La capacitación fue aprobada y está esperando confirmación de pago.',
+      },
+
+      [RequestStatus.SCHEDULED]: {
+        type:
+          NotificationType.REQUEST_SCHEDULED,
+
+        title:
+          'Capacitación agendada',
+
+        message:
+          'Tu capacitación fue agendada correctamente.',
+      },
+
+      [RequestStatus.CONFIRMED]: {
+        type:
+          NotificationType.REQUEST_CONFIRMED,
+
+        title:
+          'Capacitación confirmada',
+
+        message:
+          'Tu capacitación fue confirmada exitosamente.',
+      },
+
+      [RequestStatus.CANCELLED]: {
+        type:
+          NotificationType.REQUEST_CANCELLED,
+
+        title:
+          'Solicitud cancelada',
+
+        message:
+          'La solicitud fue cancelada.',
+      },
     };
-    return configs[status] || { 
-      type: NotificationType.REQUEST_IN_REVIEW, 
-      title: 'Actualización', message: `El estado cambió a ${status}` };
+
+    return (
+      configs[status] || {
+        type:
+          NotificationType.REQUEST_IN_REVIEW,
+
+        title:
+          'Actualización',
+
+        message:
+          `El estado cambió a ${status}`,
+      }
+    );
   }
 
   async remove(
     id: string,
     currentUser: UserPayloads,
   ): Promise<{ message: string }> {
+
     const request =
       await this.findOne(id);
 
@@ -341,6 +478,7 @@ export class TrainingRequestService {
       currentUser.role !== Role.Admin &&
       request.user.id !== currentUser.id
     ) {
+
       throw new ForbiddenException(
         'No tienes permiso para eliminar esta solicitud.',
       );
@@ -351,9 +489,9 @@ export class TrainingRequestService {
       request.status !==
         RequestStatus.PENDING
     ) {
+
       throw new BadRequestException(
-        `No puedes eliminar esta solicitud porque su estado es 
-        "${request.status}". Si necesitas cancelarla, contacta a soporte.`,
+        `No puedes eliminar esta solicitud porque su estado es "${request.status}".`,
       );
     }
 
@@ -362,7 +500,8 @@ export class TrainingRequestService {
     );
 
     return {
-      message: `La solicitud con id ${id} ha sido eliminada correctamente.`,
+      message:
+        `La solicitud con id ${id} ha sido eliminada correctamente.`,
     };
   }
 }
