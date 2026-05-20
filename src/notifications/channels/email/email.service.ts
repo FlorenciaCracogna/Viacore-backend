@@ -95,7 +95,7 @@ export class EmailService {
 
           platformUrl:
             process.env.PLATFORM_URL ??
-            'https://viacore.com',
+            'https://estudio-via3-frontend.vercel.app/',
 
           year:
             new Date().getFullYear(),
@@ -121,6 +121,13 @@ export class EmailService {
         {
           fullName,
           amount,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
         },
       );
 
@@ -141,6 +148,13 @@ export class EmailService {
         'training-request-created',
         {
           companyName,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
         },
       );
 
@@ -165,6 +179,8 @@ export class EmailService {
           companyName,
           meetingDate,
           meetingLink,
+          platformUrl: process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
+          year: new Date().getFullYear(),
         },
       );
 

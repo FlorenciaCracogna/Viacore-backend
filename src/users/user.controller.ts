@@ -25,26 +25,15 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from './user.service';
 
 import { UpdateUserDto } from './dto/update-user.dto';
-
 import { CompleteProfileDto } from './dto/create-user.dto';
-
 import { AuthGuard } from '../auth/guards/auth.guard';
-
 import { Role } from 'src/auth/roles.enum';
-
 import { Roles } from '../decorator/roles.decorator';
-
 import { RolesGuard } from '../auth/guards/roles.guard';
-
-import {
-  ApiBearerAuth,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiBearerAuth('Bearer')
-
 @ApiTags('Users')
-
 @Controller('users')
 export class UsersController {
   constructor(
@@ -66,19 +55,12 @@ export class UsersController {
     RolesGuard,
   )
   findAll(
-    @Query('page')
-    page: string,
-
-    @Query('limit')
-    limit: string,
-  ) {
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+  ) { 
     if (limit && page) {
-      return this.usersService.findAll(
-        +page,
-        +limit,
-      );
+      return this.usersService.findAll(+page, +limit);
     }
-
     return this.usersService.findAll();
   }
 
