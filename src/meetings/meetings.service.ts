@@ -85,6 +85,8 @@ export class MeetingsService {
       // No se guarda el objeto completo de Calendly.
       schedulingUrl: calendlyEvent.scheduling_url,
 
+      calendlyUri: calendlyEvent.uri,
+
       status: MeetingStatus.PENDING,
     });
 
