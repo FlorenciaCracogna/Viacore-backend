@@ -68,4 +68,23 @@ export class PaymentsRepository {
   async updateMercadoPagoId(id: string, mercadoPagoId: string) {
     await this.paymentOrmRepository.update(id, { mercadoPagoId });
   }
+
+  async findAll() {
+    return await this.paymentOrmRepository.find({
+      relations: ['user', 'trainingRequest'],
+      select: {
+        id: true,
+        amount: true,
+        status: true,
+        mercadoPagoId: true,
+        createdAt: true,
+        user: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
 }

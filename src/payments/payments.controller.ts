@@ -15,6 +15,8 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Roles } from 'src/decorator/roles.decorator';
+import { Role } from 'src/auth/roles.enum';
 
 @Controller('payments')
 export class PaymentsController {
@@ -22,6 +24,14 @@ export class PaymentsController {
     private readonly paymentsService: PaymentsService,
     private readonly configService: ConfigService,
   ) {}
+
+  @Get()
+  @ApiBearerAuth('Bearer')
+  @UseGuards(AuthGuard)
+  @Roles(Role.Admin)
+  findAll() {
+    return this.paymentsService.findAll();
+  }
 
   @Get('user/:userId')
   @ApiBearerAuth('Bearer')

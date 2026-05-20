@@ -221,4 +221,8 @@ export class PaymentsService {
   findByUserId(userId: string) {
     return this.paymentsRepository.findByUserId(userId);
   }
+
+  findAll() {
+    return this.paymentsRepository.findAll();
+  }
 }
