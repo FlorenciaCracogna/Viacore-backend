@@ -13,22 +13,19 @@ import { TrainingRequests } from 'src/training-requests/entities/training-reques
 import { Users } from 'src/users/entities/user.entity';
 
 import { EmailModule } from 'src/notifications/channels/email/email.module';
+import { MeetingRemindersService } from './cron/meeting-reminders.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  controllers: [
-    MeetingsController,
-  ],
+  controllers: [MeetingsController],
 
-  providers: [MeetingsService],
+  providers: [MeetingsService, MeetingRemindersService],
 
   imports: [
-    TypeOrmModule.forFeature([
-      Meetings,
-      TrainingRequests,
-      Users,
-    ]),
+    TypeOrmModule.forFeature([Meetings, TrainingRequests, Users]),
 
     EmailModule,
+    ScheduleModule.forRoot(),
   ],
 })
 export class MeetingsModule {}

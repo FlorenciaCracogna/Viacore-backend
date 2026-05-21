@@ -15,10 +15,7 @@ import { AuthModule } from './auth/auth.module';
 
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 
-import {
-  ConfigModule,
-  ConfigService,
-} from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import typeorm from './config/typeorm';
 
@@ -48,6 +45,8 @@ import { ContactModule } from './contact/contact.module';
 
 import { ProfileModule } from './profile/profile.module';
 
+import { ScheduleModule } from '@nestjs/schedule';
+
 @Module({
   imports: [
     UsersModule,
@@ -67,10 +66,7 @@ import { ProfileModule } from './profile/profile.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
 
-      useFactory: (
-        config: ConfigService,
-      ) =>
-        config.get('typeorm')!,
+      useFactory: (config: ConfigService) => config.get('typeorm')!,
     }),
 
     JwtModule.register({
@@ -94,12 +90,8 @@ import { ProfileModule } from './profile/profile.module';
     BullModule.forRootAsync({
       inject: [ConfigService],
 
-      useFactory: (
-        config: ConfigService,
-      ) => ({
-        redis: config.get(
-          'REDIS_URL',
-        ) as string,
+      useFactory: (config: ConfigService) => ({
+        redis: config.get('REDIS_URL') as string,
       }),
     }),
 
@@ -110,40 +102,24 @@ import { ProfileModule } from './profile/profile.module';
     ChatModule,
 
     ContactModule,
+
+    ScheduleModule.forRoot(),
   ],
 
-  controllers: [
-    AppController,
-  ],
+  controllers: [AppController],
 
-  providers: [
-    AppService,
-  ],
+  providers: [AppService],
 })
-export class AppModule
-  implements
-    NestModule,
-    OnApplicationBootstrap
-{
-  constructor(
-    private readonly trainingService: TrainingService,
-  ) {}
+export class AppModule implements NestModule, OnApplicationBootstrap {
+  constructor(private readonly trainingService: TrainingService) {}
 
-  configure(
-    consumer: MiddlewareConsumer,
-  ) {
-
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('*');
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
   }
 
   async onApplicationBootstrap() {
-
     await this.trainingService.addTraining();
 
-    console.log(
-      'Capacitaciones cargadas',
-    );
+    console.log('Capacitaciones cargadas');
   }
 }

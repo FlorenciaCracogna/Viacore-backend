@@ -5,39 +5,39 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from "typeorm";
+} from 'typeorm';
 
-import { MeetingStatus } from "./meetingStatus.entity";
+import { MeetingStatus } from './meetingStatus.entity';
 
-import { Users } from "src/users/entities/user.entity";
+import { Users } from 'src/users/entities/user.entity';
 
-import { TrainingRequests } from "src/training-requests/entities/training-request.entity";
+import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
 
-@Entity({ name: "MEETINGS" })
+@Entity({ name: 'MEETINGS' })
 export class Meetings {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({
-    type: "date",
+    type: 'date',
     nullable: false,
   })
   date!: Date;
 
   @Column({
-    type: "varchar",
+    type: 'varchar',
   })
   time!: string;
 
   @Column({
-    type: "varchar",
+    type: 'varchar',
   })
   link!: string;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: MeetingStatus,
-    enumName: "MeetingStatus",
+    enumName: 'MeetingStatus',
     default: MeetingStatus.Pendiente,
   })
   status!: MeetingStatus;
@@ -53,4 +53,16 @@ export class Meetings {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  reminder24hSent!: boolean;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  reminder2hSent!: boolean;
 }
