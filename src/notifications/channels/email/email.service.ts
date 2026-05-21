@@ -10,10 +10,12 @@ import * as path from 'path';
 
 @Injectable()
 export class EmailService {
+
   private compileTemplate(
     templateName: string,
     context: Record<string, any>,
   ): string {
+
     const templatePath = path.join(
       __dirname,
       'templates',
@@ -36,7 +38,9 @@ export class EmailService {
     subject: string,
     htmlContent: string,
   ) {
+
     try {
+
       await axios.post(
         'https://api.brevo.com/v3/smtp/email',
         {
@@ -67,7 +71,9 @@ export class EmailService {
       console.log(
         `EMAIL ENVIADO A ${to}`,
       );
+
     } catch (error: any) {
+
       console.error(
         'ERROR ENVIANDO EMAIL',
         error.response?.data ||
@@ -80,6 +86,7 @@ export class EmailService {
     email: string,
     fullName: string,
   ) {
+
     const html =
       this.compileTemplate(
         'welcome',
@@ -107,6 +114,7 @@ export class EmailService {
     fullName: string,
     amount: number,
   ) {
+
     const html =
       this.compileTemplate(
         'payment-approved',
@@ -134,6 +142,7 @@ export class EmailService {
     email: string,
     companyName: string,
   ) {
+
     const html =
       this.compileTemplate(
         'training-request-created',
@@ -162,26 +171,195 @@ export class EmailService {
     meetingDate: string,
     meetingLink: string,
   ) {
-    const html = this.compileTemplate('meeting-created', {
-      companyName,
-      meetingDate,
-      meetingLink,
-      platformUrl: process.env.PLATFORM_URL ??'https://estudio-via3-frontend.vercel.app/',
-      year:new Date().getFullYear(),
-    });
-    await this.sendEmail(email, 'Reunión agendada', html);
+
+    const html =
+      this.compileTemplate(
+        'meeting-created',
+        {
+          companyName,
+          meetingDate,
+          meetingLink,
+          platformUrl: process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
+          year: new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Reunión agendada',
+      html,
+    );
   }
 
   async sendContactConfirmation(
     email: string,
     nombre: string,
   ) {
-    const html = this.compileTemplate('contact-confirmation', {
-      nombre,
-      platformUrl: process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
-      year: new Date().getFullYear(),
-    });
-    await this.sendEmail(email, 'Recibimos tu consulta', html);
+
+    const html =
+      this.compileTemplate(
+        'contact-confirmation',
+        {
+          nombre,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://viacore.com',
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Recibimos tu consulta',
+      html,
+    );
+  }
+
+  async sendRequestInReview(
+    email: string,
+    fullName: string,
+  ) {
+
+    const html =
+      this.compileTemplate(
+        'request-in-review',
+        {
+          fullName,
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Solicitud en revisión',
+      html,
+    );
+  }
+
+  async sendAwaitingPayment(
+    email: string,
+    fullName: string,
+  ) {
+
+    const html =
+      this.compileTemplate(
+        'awaiting-payment',
+        {
+          fullName,
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Pago pendiente',
+      html,
+    );
+  }
+
+  async sendTrainingScheduled(
+    email: string,
+    fullName: string,
+  ) {
+
+    const html =
+      this.compileTemplate(
+        'training-scheduled',
+        {
+          fullName,
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Capacitación agendada',
+      html,
+    );
+  }
+
+  async sendTrainingConfirmed(
+    email: string,
+    fullName: string,
+  ) {
+
+    const html =
+      this.compileTemplate(
+        'training-confirmed',
+        {
+          fullName,
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Capacitación confirmada',
+      html,
+    );
+  }
+
+  async sendTrainingCancelled(
+    email: string,
+    fullName: string,
+  ) {
+
+    const html =
+      this.compileTemplate(
+        'training-cancelled',
+        {
+          fullName,
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Solicitud cancelada',
+      html,
+    );
+  }
+
+  async sendNewMaterialAvailable(
+    email: string,
+    fullName: string,
+    materialTitle: string,
+    materialUrl: string,
+  ) {
+
+    const html =
+      this.compileTemplate(
+        'new-material-available',
+        {
+          fullName,
+
+          materialTitle,
+
+          materialUrl,
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Nuevo material disponible',
+      html,
+    );
   }
 
   async sendTrainingInReview(
