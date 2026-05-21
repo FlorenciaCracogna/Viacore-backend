@@ -62,30 +62,19 @@ export class PaymentsService {
     this.mpPayment = new MpPayment(client);
   }
 
-  async findAll(
-    startDate: string,
-    endDate: string,
-  ) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    if (isNaN(start.getTime())) {
-      throw new BadRequestException('startDate inválida');
+  async findAll(startDate: string, endDate: string) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate y endDate son obligatorios');
     }
 
-    if (isNaN(end.getTime())) {
-      throw new BadRequestException('endDate inválida');
+    const start = new Date(`${startDate}T00:00:00.000Z`);
+    const end = new Date(`${endDate}T23:59:59.999Z`);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Formato de fecha inválido');
     }
 
-    // 🔑 Normalizar rango completo del día
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-    end.setUTCDate(end.getUTCDate() + 1);
-
-    return this.paymentsRepository.findAllWithDateRange(
-      start,
-      end,
-    );
+    return this.paymentsRepository.findAllWithDateRange(start, end);
   }
 
   async createPreference(
@@ -242,9 +231,5 @@ export class PaymentsService {
 
   findByUserId(userId: string): Promise<PaymentResponseDto[]> {
     return this.paymentsRepository.findByUserId(userId);
-  }
-
-  findAll(): Promise<PaymentResponseDto[]> {
-    return this.paymentsRepository.findAll();
   }
 }

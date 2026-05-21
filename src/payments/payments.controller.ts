@@ -22,6 +22,7 @@ import {
   PaymentResponseDto,
   WebhookResponseDto,
 } from './dto/payment-response.dto';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('payments')
 export class PaymentsController {
@@ -32,6 +33,13 @@ export class PaymentsController {
 
   @Get()
   @ApiBearerAuth('Bearer')
+  @Roles(
+    Role.Admin,
+  )
+  @UseGuards(
+    AuthGuard,
+    RolesGuard,
+  )
   findAll(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
