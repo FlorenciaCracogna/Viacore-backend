@@ -205,7 +205,7 @@ async sendTrainingScheduledToCompany(
 
   await this.sendEmail(email, 'Capacitación agendada', html);
 }
-
+    }
 async sendTrainingConfirmedToCompany(
   email: string,
   companyName: string,
