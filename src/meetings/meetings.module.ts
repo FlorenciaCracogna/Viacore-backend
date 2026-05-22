@@ -1,31 +1,21 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { MeetingsService } from './meetings.service';
-
 import { MeetingsController } from './meetings.controller';
-
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Meetings } from './entities/meeting.entity';
 
-import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
-
-import { Users } from 'src/users/entities/user.entity';
-
-import { EmailModule } from 'src/notifications/channels/email/email.module';
-
+import { CalendlyModule } from 'src/calendly/calendly.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
-  controllers: [MeetingsController],
-
-  providers: [MeetingsService],
-
   imports: [
-    TypeOrmModule.forFeature([Meetings, TrainingRequests, Users]),
-
-    EmailModule,
+    TypeOrmModule.forFeature([Meetings]),
+    CalendlyModule,
     NotificationsModule,
   ],
+  controllers: [MeetingsController],
+  providers: [MeetingsService],
 })
 export class MeetingsModule {}
