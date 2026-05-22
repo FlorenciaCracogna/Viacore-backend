@@ -7,14 +7,13 @@ import { MeetingsController } from './meetings.controller';
 import { Meetings } from './entities/meeting.entity';
 
 import { CalendlyModule } from 'src/calendly/calendly.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Meetings]),
-
-    // Se importa CalendlyModule para poder utilizar
-    // CalendlyService dentro del módulo de reuniones.
     CalendlyModule,
+    NotificationsModule,
   ],
   controllers: [MeetingsController],
   providers: [MeetingsService],
