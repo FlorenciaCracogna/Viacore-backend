@@ -113,12 +113,21 @@ export class ChatService {
     return await this.chatMessageRepository.saveMessage(aiMessagePayload);
   }
 
-  async getChatHistory(identifier: string): Promise<ChatMessage[]> {
+async getChatHistory(identifier: string): Promise<ChatMessage[]> {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        .test(identifier);
+    const conditions = isUuid
+      ? [
+          { trainingRequest: { id: identifier } },
+          { sessionId: identifier },
+        ]
+      : [
+          { sessionId: identifier },
+        ];
+
     const history = await this.chatMessageRepository.find({
-      where: [
-        { trainingRequest: { id: identifier } },
-        { sessionId: identifier },
-      ],
+      where: conditions,
       relations: [`sender`],
       order: { createdAt: `ASC` },
     });
@@ -142,5 +151,33 @@ export class ChatService {
         sender: { id: userId },
       }
     );
+  }
+
+  async getAdminStats() : Promise<{
+    totalSessions: number;
+    totalRevenue: number;
+    convertedCount: number;
+    conversionRate: number;
+  }>{
+    const rawData =
+      await this.chatMessageRepository.getAdminStatsRaw();
+    const totalSessions =
+      parseInt(rawData.sessionCount?.count || `0`, 10);
+    const totalRevenue =
+      parseFloat(rawData.conversionData?.revenue || `0`);
+    const convertedCount =
+      parseInt(rawData.conversionData?.converted || `0`, 10);
+    const conversionRate = totalSessions > 0
+      ? parseFloat(
+          ((convertedCount / totalSessions) * 100)
+            .toFixed(2)
+        )
+      : 0;
+    return {
+      totalSessions,
+      totalRevenue,
+      convertedCount,
+      conversionRate,
+    };
   }
 }
