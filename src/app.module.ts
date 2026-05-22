@@ -15,7 +15,10 @@ import { AuthModule } from './auth/auth.module';
 
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import {
+  ConfigModule,
+  ConfigService,
+} from '@nestjs/config';
 
 import typeorm from './config/typeorm';
 
@@ -32,11 +35,24 @@ import { TrainingService } from './training/training.service';
 import { MeetingsModule } from './meetings/meetings.module';
 
 import { TrainingRequestModule } from './training-requests/training-request.module';
-import { CalendlyService } from './calendly/calendly.service';
+
+import { NotificationsModule } from './notifications/notifications.module';
+
+import { PaymentsModule } from './payments/payments.module';
+
+import { ChatModule } from './chat/chat.module';
+
+import { BullModule } from '@nestjs/bull';
+
+import { ContactModule } from './contact/contact.module';
+
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
     UsersModule,
+
+    ProfileModule,
 
     AuthModule,
 
@@ -51,7 +67,10 @@ import { CalendlyService } from './calendly/calendly.service';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
 
-      useFactory: (config: ConfigService) => config.get('typeorm')!,
+      useFactory: (
+        config: ConfigService,
+      ) =>
+        config.get('typeorm')!,
     }),
 
     JwtModule.register({
@@ -72,27 +91,60 @@ import { CalendlyService } from './calendly/calendly.service';
     MeetingsModule,
 
     TrainingRequestModule,
+
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+
+      useFactory: (
+        config: ConfigService,
+      ) => ({
+        redis: config.get(
+          'REDIS_URL',
+        ) as string,
+      }),
+    }),
+
+    NotificationsModule,
+
+    PaymentsModule,
+
+    ChatModule,
+
+    ContactModule,
   ],
 
-  controllers: [AppController],
+  controllers: [
+    AppController,
+  ],
 
-  providers: [AppService],
+  providers: [
+    AppService,
+  ],
 })
-export class AppModule implements NestModule, OnApplicationBootstrap {
+export class AppModule
+  implements
+    NestModule,
+    OnApplicationBootstrap
+{
   constructor(
     private readonly trainingService: TrainingService,
-    private readonly calendlyService: CalendlyService,
   ) {}
 
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+  configure(
+    consumer: MiddlewareConsumer,
+  ) {
+
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*');
   }
 
   async onApplicationBootstrap() {
+
     await this.trainingService.addTraining();
 
-    console.log('Capacitaciones cargadas');
-
-    await this.calendlyService.createWebhookSubscription('https://TU-NGROK.ngrok-free.app/calendly/webhook')
+    console.log(
+      'Capacitaciones cargadas',
+    );
   }
 }
