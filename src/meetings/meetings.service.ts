@@ -61,7 +61,7 @@ export class MeetingsService {
 
     // Se define una duración fija de 30 minutos
     // para mantener el flujo simple y estable.
-    endDate.setMinutes(endDate.getMinutes() + 30);
+    endDate.setMinutes(endDate.getMinutes() + 31);
 
     // Calendly será el proveedor principal de reuniones.
     // Aquí se genera dinámicamente el scheduling link.
@@ -69,7 +69,7 @@ export class MeetingsService {
       await this.calendlyService.createOneOffEvent({
         name: 'Reunión Empresarial',
 
-        startTime: startDate.toISOString(),
+        startTime: startDate.toISOString(), //startDate.toISOString(),
 
         endTime: endDate.toISOString(),
 
@@ -79,7 +79,7 @@ export class MeetingsService {
 
         guestName: 'Cliente Viacore',
       });
-
+console.log(JSON.stringify(calendlyEvent))
     const newMeeting = this.meetingsRepository.create({
       ...meetingData,
 
@@ -93,6 +93,9 @@ export class MeetingsService {
 
       status: MeetingStatus.PENDING,
     });
+
+    
+    console.log(newMeeting)
 
     return await this.meetingsRepository.save(newMeeting);
   }

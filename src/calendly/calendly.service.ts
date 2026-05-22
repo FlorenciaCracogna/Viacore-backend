@@ -92,10 +92,10 @@ export class CalendlyService {
           type: 'date_range',
 
           start_date:
-            dto.startTime.split('T')[0],
+            new Date(dto.startTime),
 
           end_date:
-            dto.endTime.split('T')[0],
+            new Date(dto.endTime),
         },
 
         // Calendly generará automáticamente
@@ -135,6 +135,8 @@ export class CalendlyService {
 
 
  async handleInviteeCreated(payload: any): Promise<void> {
+  this.logger.log('Payload webhook:', JSON.stringify(payload));
+
     const calendlyUri: string = payload.event;
     const joinUrl: string | undefined = payload.location?.join_url;
     const startTime: string = payload.scheduled_event?.start_time;
@@ -145,6 +147,7 @@ export class CalendlyService {
 
     const event = await this.meetingsRepository.findOne({
       where: { calendlyUri },
+      relations: ['user']
     });
 
     if (!event) {
