@@ -93,6 +93,6 @@ export class AppModule implements NestModule, OnApplicationBootstrap {
 
     console.log('Capacitaciones cargadas');
 
-    await this.calendlyService.registerWebhook()
+    await this.calendlyService.createWebhookSubscription('https://TU-NGROK.ngrok-free.app/calendly/webhook')
   }
 }

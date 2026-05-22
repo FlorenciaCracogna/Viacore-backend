@@ -4,42 +4,29 @@ import { CalendlyService } from './calendly.service';
 
 @Controller('webhooks/calendly')
 export class CalendlyController {
-  private readonly logger = new Logger(CalendlyController.name);
+  constructor(
+    private readonly calendlyService: CalendlyService,
+  ) {}
 
-  constructor(private readonly calendlyService: CalendlyService) {}
-
+  // Este endpoint recibirá automáticamente eventos
+  // enviados por Calendly cuando una reunión:
+  // - sea creada
+  // - cancelada
+  // - reagendada
   @Post()
-  @HttpCode(200)
-  async handleWebhook(
-    @Body() body: any,
-    @Headers('calendly-webhook-signature') signature: string,
-  ) {
-    // 1. Verificar firma
-    if (!this.isValidSignature(JSON.stringify(body), signature)) {
-      this.logger.warn('Firma de webhook inválida');
-      throw new UnauthorizedException('Firma inválida');
-    }
-
-    // 2. Rutear según el tipo de evento
-    switch (body.event) {
-      case 'invitee.created':
-        await this.calendlyService.handleInviteeCreated(body.payload);
-        break;
-      case 'invitee.canceled':
-        await this.calendlyService.handleInviteeCanceled(body.payload);
-        break;
-      default:
-        this.logger.log(`Evento no manejado: ${body.event}`);
-    }
-
-    return { status: 'ok' };
+  async webhook(@Body() payload: any) {
+    return this.calendlyService.handleWebhook(payload);
   }
 
-  private isValidSignature(payload: string, signature: string): boolean {
-    if (!signature) return false;
-    const secret = process.env.CALENDLY_WEBHOOK_KEY;
-    if (!secret) { return false; }
-    const hmac = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-    return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(signature));
+  // Este endpoint registra automáticamente
+  // el webhook dentro de Calendly.
+  //
+  // IMPORTANTE:
+  // Debes reemplazar la URL ngrok por tu URL pública real.
+  @Post('register-webhook')
+  async registerWebhook() {
+    return this.calendlyService.createWebhookSubscription(
+      'https://TU-NGROK.ngrok-free.app/calendly/webhook',
+    );
   }
 }
