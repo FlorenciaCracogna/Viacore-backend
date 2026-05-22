@@ -14,21 +14,18 @@ import { Users } from 'src/users/entities/user.entity';
 
 import { EmailModule } from 'src/notifications/channels/email/email.module';
 
+import { NotificationsModule } from 'src/notifications/notifications.module';
+
 @Module({
-  controllers: [
-    MeetingsController,
-  ],
+  controllers: [MeetingsController],
 
   providers: [MeetingsService],
 
   imports: [
-    TypeOrmModule.forFeature([
-      Meetings,
-      TrainingRequests,
-      Users,
-    ]),
+    TypeOrmModule.forFeature([Meetings, TrainingRequests, Users]),
 
     EmailModule,
+    NotificationsModule,
   ],
 })
 export class MeetingsModule {}
