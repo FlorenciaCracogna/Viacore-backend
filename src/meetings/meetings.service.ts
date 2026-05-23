@@ -11,12 +11,15 @@ import { Repository } from 'typeorm';
 import { Meetings } from './entities/meeting.entity';
 
 import { CreateMeetingDto } from './dto/create-meeting.dto';
+
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 
 import { MeetingStatus } from './entities/meetingStatus.entity';
 
 import { CalendlyService } from 'src/calendly/calendly.service';
 
+import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
+import { RequestStatus } from 'src/training-requests/enums/requests-status.enum';
 import { NotificationsGateway } from 'src/notifications/gateways/notifications.gateway';
 
 @Injectable()
@@ -26,6 +29,10 @@ export class MeetingsService {
     private readonly meetingsRepository: Repository<Meetings>,
 
     private readonly calendlyService: CalendlyService,
+
+    @InjectRepository(TrainingRequests)
+    private readonly trainingRequestsRepository: Repository<TrainingRequests>,
+     
     private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
@@ -64,7 +71,22 @@ export class MeetingsService {
 
     // Se define una duración fija de 30 minutos
     // para mantener el flujo simple y estable.
-    endDate.setMinutes(endDate.getMinutes() + 30);
+    endDate.setMinutes(endDate.getMinutes() + 31);
+
+    const request =
+      await this.trainingRequestsRepository.findOne(
+        {
+          where: {
+            id: createMeetingDto.trainingRequestId,
+          },
+        },
+      );
+
+    if (!request) {
+      throw new NotFoundException(
+        'Solicitud no encontrada',
+      );
+    }
 
     // Calendly será el proveedor principal de reuniones.
     // Aquí se genera dinámicamente el scheduling link.
@@ -79,13 +101,18 @@ export class MeetingsService {
       // se conecta el sistema real de usuarios.
       guestEmail: 'cliente@viacore.com',
 
-      guestName: 'Cliente Viacore',
-    });
+        guestName: 'Cliente Viacore',
+      });
+    console.log(JSON.stringify(calendlyEvent))
 
     const newMeeting = this.meetingsRepository.create({
       ...meetingData,
 
       user: { id: targetUserId },
+
+      trainingRequest: {
+        id: createMeetingDto.trainingRequestId,
+      },
 
       // Se almacena únicamente el scheduling URL.
       // No se guarda el objeto completo de Calendly.
@@ -96,6 +123,12 @@ export class MeetingsService {
       status: MeetingStatus.PENDING,
     });
 
+    request.status =
+      RequestStatus.SCHEDULED;
+
+    await this.trainingRequestsRepository.save( request );
+
+    return await this.meetingsRepository.save(newMeeting);
     const saved = await this.meetingsRepository.save(newMeeting);
 
     this.notificationsGateway.emitNotificationToAdmin({

@@ -11,6 +11,8 @@ import { Users } from 'src/users/entities/user.entity';
 
 import { EmailModule } from 'src/notifications/channels/email/email.module';
 import { CalendlyModule } from 'src/calendly/calendly.module';
+import { TrainingRequestModule } from 'src/training-requests/training-request.module';
+import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { MeetingRemindersService } from './cron/meeting-reminders.service';
 
@@ -21,6 +23,7 @@ import { MeetingRemindersService } from './cron/meeting-reminders.service';
     EmailModule,
     CalendlyModule,
     NotificationsModule,
+    TrainingRequestModule
   ],
   controllers: [MeetingsController],
   providers: [MeetingsService, MeetingRemindersService],
