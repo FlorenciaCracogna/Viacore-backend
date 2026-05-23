@@ -195,7 +195,7 @@ async forgotPassword(email: string) {
   );
 
   const resetLink =
-    `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    `${process.env.FRONTEND_URL}/reseteo-contraseña?token=${token}`;
 
   await this.emailService.sendForgotPasswordEmail(
     foundUser.email,
