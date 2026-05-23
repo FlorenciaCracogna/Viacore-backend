@@ -1,31 +1,42 @@
 import { Module } from '@nestjs/common';
+
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { ScheduleModule } from '@nestjs/schedule';
 
-import { MeetingsService } from './meetings.service';
-import { MeetingsController } from './meetings.controller';
+import { Meeting } from './entities/meeting.entity';
 
-import { Meetings } from './entities/meeting.entity';
-import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
-import { Users } from 'src/users/entities/user.entity';
+import { MeetingsController } from './controllers/meetings.controller';
 
-import { EmailModule } from 'src/notifications/channels/email/email.module';
-import { CalendlyModule } from 'src/calendly/calendly.module';
-import { TrainingRequestModule } from 'src/training-requests/training-request.module';
-import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
-import { NotificationsModule } from 'src/notifications/notifications.module';
-import { MeetingRemindersService } from './cron/meeting-reminders.service';
+import { MeetingsService } from './services/meetings.service';
+
+import { AvailabilityService } from './services/availability.service';
+
+import { GoogleMeetService } from './services/google-meet.service';
+
+import { ReminderService } from './services/reminder.service';
+
+import { CalendarService } from './services/calendar.service';
+
+import { ReminderCron } from './cron/reminder.cron';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Meetings, TrainingRequests, Users]),
+    TypeOrmModule.forFeature([Meeting]),
     ScheduleModule.forRoot(),
-    EmailModule,
-    CalendlyModule,
-    NotificationsModule,
-    TrainingRequestModule
   ],
+
   controllers: [MeetingsController],
-  providers: [MeetingsService, MeetingRemindersService],
+
+  providers: [
+    MeetingsService,
+    AvailabilityService,
+    GoogleMeetService,
+    ReminderService,
+    CalendarService,
+    ReminderCron,
+  ],
+
+  exports: [MeetingsService],
 })
 export class MeetingsModule {}

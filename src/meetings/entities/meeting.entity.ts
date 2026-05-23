@@ -2,83 +2,55 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
-import { MeetingStatus } from './meetingStatus.entity';
-
-import { Users } from 'src/users/entities/user.entity';
-import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
-
-@Entity({ name: 'MEETINGS' })
-export class Meetings {
+@Entity('meetings')
+export class Meeting {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({
-    type: 'date',
-    nullable: false,
-  })
-  date!: Date;
+  @Column()
+  userName!: string;
+
+  @Column()
+  userEmail!: string;
 
   @Column({
-    type: 'varchar',
+    default: 'Scheduled Meeting',
   })
-  time!: string;
+  topic!: string;
 
-  // Calendly será el proveedor principal de reuniones.
-  // Aquí se almacena el scheduling link dinámico.
   @Column({
-    type: 'varchar',
+    type: 'timestamp',
+  })
+  startTime!: Date;
+
+  @Column({
+    type: 'timestamp',
+  })
+  endTime!: Date;
+
+  @Column({
     nullable: true,
   })
-  schedulingUrl!: string;
+  meetLink!: string;
 
   @Column({
-    type: 'varchar',
     nullable: true,
   })
-  calendlyUri!: string;
+  googleEventId!: string;
 
   @Column({
-    type: 'varchar',
-    nullable: true,
+    default: 'CONFIRMED',
   })
-  joinUrl!: string;
+  status!: string;
 
   @Column({
-    type: 'enum',
-    enum: MeetingStatus,
-    enumName: 'MeetingStatus',
-    default: MeetingStatus.PENDING,
+    default: false,
   })
-  status!: MeetingStatus;
-
-  @ManyToOne(() => Users)
-  user!: Users;
-
-  @ManyToOne(() => TrainingRequests, (request) => request.meetings, {
-    nullable: true,
-  })
-  trainingRequest!: TrainingRequests;
+  reminderSent!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
-
-  @Column({
-    type: 'boolean',
-    default: false,
-  })
-  reminder24hSent!: boolean;
-
-  @Column({
-    type: 'boolean',
-    default: false,
-  })
-  reminder2hSent!: boolean;
 }
