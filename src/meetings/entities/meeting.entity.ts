@@ -31,8 +31,9 @@ export class Meetings {
 
   @Column({
     type: "varchar",
+    nullable: true,
   })
-  link!: string;
+  link?: string;
 
   @Column({
     type: "enum",

@@ -1,5 +1,5 @@
-export enum MeetingStatus{
-    Confirmada,
-    Cancelada,
-    Pendiente
+export enum MeetingStatus {
+  Confirmada = "Confirmada",
+  Cancelada = "Cancelada",
+  Pendiente = "Pendiente",
 }
