@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
+
 import axios from 'axios';
+
 import * as handlebars from 'handlebars';
+
 import * as fs from 'fs';
+
 import * as path from 'path';
 
 @Injectable()
@@ -14,7 +18,7 @@ export class EmailService {
 
     const templatePath = path.join(
       __dirname,
-      `templates`,
+      'templates',
       `${templateName}.hbs`,
     );
 
@@ -46,8 +50,11 @@ export class EmailService {
             email:
               'danielmauriciomedina95@gmail.com',
           },
+
           to: [{ email: to }],
+
           subject,
+
           htmlContent,
         },
         {
@@ -70,8 +77,10 @@ export class EmailService {
       console.error(
         'ERROR ENVIANDO EMAIL',
         error.response?.data ||
-          error.message,
-      ); throw error
+        error.message,
+      );
+
+      throw error;
     }
   }
 
@@ -103,31 +112,31 @@ export class EmailService {
   }
 
   async sendForgotPasswordEmail(
-  email: string,
-  resetLink: string,
-) {
+    email: string,
+    resetLink: string,
+  ) {
 
-  const html =
-    this.compileTemplate(
-      'forgot-password',
-      {
-        resetLink,
+    const html =
+      this.compileTemplate(
+        'forgot-password',
+        {
+          resetLink,
 
-        platformUrl:
-          process.env.PLATFORM_URL ??
-          'https://estudio-via3-frontend.vercel.app/',
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
 
-        year:
-          new Date().getFullYear(),
-      },
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Recuperar contraseña',
+      html,
     );
-
-  await this.sendEmail(
-    email,
-    'Recuperar contraseña',
-    html,
-  );
-}
+  }
 
   async sendPaymentApproved(
     email: string,
@@ -140,6 +149,7 @@ export class EmailService {
         'payment-approved',
         {
           fullName,
+
           amount,
 
           platformUrl:
@@ -197,10 +207,17 @@ export class EmailService {
         'meeting-created',
         {
           companyName,
+
           meetingDate,
+
           meetingLink,
-          platformUrl: process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
-          year: new Date().getFullYear(),
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
         },
       );
 
@@ -386,6 +403,7 @@ export class EmailService {
     email: string,
     companyName: string,
   ) {
+
     const html =
       this.compileTemplate(
         'training-in-review',
@@ -412,6 +430,7 @@ export class EmailService {
     email: string,
     companyName: string,
   ) {
+
     const html =
       this.compileTemplate(
         'training-awaiting-payment',
@@ -434,48 +453,85 @@ export class EmailService {
     );
   }
 
-  async sendTrainingAwaitingPayment(email: string, companyName: string) {
-    const html = this.compileTemplate(`training-awaiting-payment`, {
-      companyName,
-      platformUrl:
-        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
-      year: new Date().getFullYear(),
-    });
+  async sendTrainingScheduledToCompany(
+    email: string,
+    companyName: string,
+  ) {
 
-    await this.sendEmail(email, `Pago pendiente`, html);
+    const html =
+      this.compileTemplate(
+        'training-scheduled',
+        {
+          companyName,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Capacitación agendada',
+      html,
+    );
   }
 
-  async sendTrainingScheduledToCompany(email: string, companyName: string) {
-    const html = this.compileTemplate(`training-scheduled`, {
-      companyName,
-      platformUrl:
-        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
-      year: new Date().getFullYear(),
-    });
+  async sendTrainingConfirmedToCompany(
+    email: string,
+    companyName: string,
+  ) {
 
-    await this.sendEmail(email, `Capacitación agendada`, html);
+    const html =
+      this.compileTemplate(
+        'training-confirmed',
+        {
+          companyName,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Capacitación confirmada',
+      html,
+    );
   }
 
-  async sendTrainingConfirmedToCompany(email: string, companyName: string) {
-    const html = this.compileTemplate(`training-confirmed`, {
-      companyName,
-      platformUrl:
-        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
-      year: new Date().getFullYear(),
-    });
+  async sendTrainingCancelledToCompany(
+    email: string,
+    companyName: string,
+  ) {
 
-    await this.sendEmail(email, `Capacitación confirmada`, html);
-  }
+    const html =
+      this.compileTemplate(
+        'training-cancelled',
+        {
+          companyName,
 
-  async sendTrainingCancelledToCompany(email: string, companyName: string) {
-    const html = this.compileTemplate(`training-cancelled`, {
-      companyName,
-      platformUrl:
-        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
-      year: new Date().getFullYear(),
-    });
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
 
-    await this.sendEmail(email, `Solicitud cancelada`, html);
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Solicitud cancelada',
+      html,
+    );
   }
 
   async sendMeetingReminder24h(
@@ -485,17 +541,33 @@ export class EmailService {
     meetingTime: string,
     meetingLink: string,
   ) {
-    const html = this.compileTemplate('meeting-reminder-24h', {
-      companyName,
-      meetingDate,
-      meetingTime,
-      meetingLink,
-      platformUrl:
-        process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
-      year: new Date().getFullYear(),
-    });
 
-    await this.sendEmail(email, 'Recordatorio: tu reunión es mañana', html);
+    const html =
+      this.compileTemplate(
+        'meeting-reminder-24h',
+        {
+          companyName,
+
+          meetingDate,
+
+          meetingTime,
+
+          meetingLink,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Recordatorio: tu reunión es mañana',
+      html,
+    );
   }
 
   async sendMeetingReminder2h(
@@ -505,21 +577,34 @@ export class EmailService {
     meetingTime: string,
     meetingLink: string,
   ) {
-    const html = this.compileTemplate('meeting-reminder-2h', {
-      companyName,
-      meetingDate,
-      meetingTime,
-      meetingLink,
-      platformUrl:
-        process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
-      year: new Date().getFullYear(),
-    });
 
-    await this.sendEmail(email, 'Recordatorio: tu reunión es en 2 horas', html);
+    const html =
+      this.compileTemplate(
+        'meeting-reminder-2h',
+        {
+          companyName,
+
+          meetingDate,
+
+          meetingTime,
+
+          meetingLink,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
+
+    await this.sendEmail(
+      email,
+      'Recordatorio: tu reunión es en 2 horas',
+      html,
+    );
   }
-
-  // NUEVO
-  // RECUPERACIÓN DE CONTRASEÑA
 
   async sendPasswordRecoveryEmail(
     email: string,
@@ -527,17 +612,22 @@ export class EmailService {
     resetLink: string,
   ) {
 
-    const html = this.compileTemplate(
-      'password-recovery',
-      {
-        fullName,
-        resetLink,
-        platformUrl:
-          process.env.PLATFORM_URL ??
-          'https://estudio-via3-frontend.vercel.app/',
-        year: new Date().getFullYear(),
-      },
-    );
+    const html =
+      this.compileTemplate(
+        'password-recovery',
+        {
+          fullName,
+
+          resetLink,
+
+          platformUrl:
+            process.env.PLATFORM_URL ??
+            'https://estudio-via3-frontend.vercel.app/',
+
+          year:
+            new Date().getFullYear(),
+        },
+      );
 
     await this.sendEmail(
       email,

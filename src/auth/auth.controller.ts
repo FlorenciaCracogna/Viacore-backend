@@ -41,13 +41,16 @@ const cookieConfig = {
   path: '/',
 };
 
-@UseInterceptors(ClassSerializerInterceptor)
+@UseInterceptors(
+  ClassSerializerInterceptor,
+)
 
 @ApiTags('Auth')
 
 @Controller('auth')
 
 export class AuthController {
+
   constructor(
     private readonly authService: AuthService,
   ) {}
@@ -118,7 +121,9 @@ export class AuthController {
 
   @Post('signup')
 
-  @UseInterceptors(ClassSerializerInterceptor)
+  @UseInterceptors(
+    ClassSerializerInterceptor,
+  )
 
   @SerializeOptions({
     groups: ['newUser'],
@@ -132,7 +137,6 @@ export class AuthController {
     return this.authService.create(
       createUserDto,
     );
-
   }
 
   @Post('signin')
@@ -226,25 +230,6 @@ export class AuthController {
     };
   }
 
-  @Post('forgot-password')
-forgotPassword(
-  @Body() body: { email: string },
-) {
-  return this.authService.forgotPassword(
-    body.email,
-  );
-}
-
-@Post("reset-password")
-async resetPassword(
-  @Body() body: { token: string; password: string }
-) {
-  return this.authService.resetPassword(
-    body.token,
-    body.password,
-  );
-}
-
   @Get('profile')
 
   @UseGuards(AuthGuard)
@@ -260,6 +245,5 @@ async resetPassword(
     );
 
     return (req as any).user;
-
   }
 }

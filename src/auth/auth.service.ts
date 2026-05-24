@@ -24,17 +24,18 @@ import { EmailService } from 'src/notifications/channels/email/email.service';
 
 @Injectable()
 export class AuthService {
+
   constructor(
+
     @InjectRepository(Users)
-    private readonly usersRepository: Repository<Users>,
+    private readonly usersRepository:
+    Repository<Users>,
 
-    @InjectRepository(PasswordResetToken)
-    private readonly resetRepository:
-    Repository<PasswordResetToken>,
+    private readonly jwtService:
+    JwtService,
 
-    private readonly jwtService: JwtService,
-
-    private readonly emailService: EmailService,
+    private readonly emailService:
+    EmailService,
   ) {}
 
   async create(
@@ -111,7 +112,6 @@ export class AuthService {
         'ERROR MAIL:',
         error,
       );
-
     }
 
     return savedUser;
@@ -266,7 +266,6 @@ export class AuthService {
     };
   }
 
-  // NUEVO
   // RESET PASSWORD
 
   async resetPassword(
