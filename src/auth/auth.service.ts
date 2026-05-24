@@ -24,24 +24,21 @@ import { EmailService } from 'src/notifications/channels/email/email.service';
 
 @Injectable()
 export class AuthService {
-
   constructor(
-
     @InjectRepository(Users)
     private readonly usersRepository:
-    Repository<Users>,
+      Repository<Users>,
 
     private readonly jwtService:
-    JwtService,
+      JwtService,
 
     private readonly emailService:
-    EmailService,
+      EmailService,
   ) {}
 
   async create(
     createUserDto: CreateUserDto,
   ) {
-
     const normalizedEmail =
       createUserDto.email
         .toLowerCase()
@@ -53,14 +50,12 @@ export class AuthService {
       });
 
     if (foundUser?.googleId) {
-
       throw new BadRequestException(
         'Este correo ya fue registrado mediante Google. Continúa con Google.',
       );
     }
 
     if (foundUser) {
-
       throw new BadRequestException(
         'Este correo ya está registrado. Por favor, inicia sesión.',
       );
@@ -96,13 +91,15 @@ export class AuthService {
       );
 
     try {
+      await this.emailService.sendWelcomeEmail(
+        savedUser.email,
+        savedUser.name,
+      );
 
       console.log(
         'WELCOME EMAIL ENVIADO',
       );
-
     } catch (error) {
-
       console.error(
         'ERROR MAIL:',
         error,
@@ -115,7 +112,6 @@ export class AuthService {
   async signIn(
     credentials: LoginUserDto,
   ) {
-
     const normalizedEmail =
       credentials.email
         .toLowerCase()
@@ -131,14 +127,12 @@ export class AuthService {
         .getOne();
 
     if (!foundUser) {
-
       throw new BadRequestException(
         'Credenciales inválidas',
       );
     }
 
     if (foundUser.googleId) {
-
       throw new BadRequestException(
         'Esta cuenta fue registrada mediante Google. Continúa con Google.',
       );
@@ -151,7 +145,6 @@ export class AuthService {
       );
 
     if (!matchingPassword) {
-
       throw new BadRequestException(
         'Credenciales inválidas',
       );
@@ -184,129 +177,6 @@ export class AuthService {
     };
   }
 
-  // RECUPERAR CONTRASEÑA
-
-  async forgotPassword(
-    email: string,
-  ) {
-
-    const normalizedEmail =
-      email
-        .toLowerCase()
-        .trim();
-
-    const user =
-      await this.usersRepository.findOneBy({
-        email: normalizedEmail,
-      });
-
-    if (!user) {
-
-      return {
-        success: true,
-        message:
-          'Si el correo existe, enviaremos instrucciones.',
-      };
-    }
-
-    if (user.googleId) {
-
-      throw new BadRequestException(
-        'Esta cuenta fue registrada con Google. Continúa con Google.',
-      );
-    }
-
-    const resetLink =
-      `${
-        process.env.FRONTEND_URL ||
-        'http://localhost:3000'
-      }/reseteo-contrasenia?email=${user.email}`;
-
-    try {
-
-      await this.emailService.sendPasswordRecoveryEmail(
-        user.email,
-        user.name,
-        resetLink,
-      );
-
-      console.log(
-        'RESET PASSWORD EMAIL ENVIADO:',
-        user.email,
-      );
-
-    } catch (error) {
-
-      console.error(
-        'ERROR RESET PASSWORD EMAIL:',
-        error,
-      );
-
-      throw new BadRequestException(
-        'No pudimos enviar el correo de recuperación.',
-      );
-    }
-
-    return {
-      success: true,
-      message:
-        'Correo de recuperación enviado.',
-    };
-  }
-
-  // RESET PASSWORD
-
-  async resetPassword(
-    email: string,
-    password: string,
-  ) {
-
-    const normalizedEmail =
-      email
-        .toLowerCase()
-        .trim();
-
-    const user =
-      await this.usersRepository.findOneBy({
-        email: normalizedEmail,
-      });
-
-    if (!user) {
-
-      throw new BadRequestException(
-        'Usuario no encontrado.',
-      );
-    }
-
-    if (user.googleId) {
-
-      throw new BadRequestException(
-        'Esta cuenta fue registrada con Google.',
-      );
-    }
-
-    const hashedPassword =
-      await bcrypt.hash(
-        password,
-        10,
-      );
-
-    await this.usersRepository.update(
-      {
-        email: normalizedEmail,
-      },
-      {
-        password: hashedPassword,
-      },
-    );
-
-    return {
-      success: true,
-      message:
-        'Contraseña actualizada correctamente.',
-    };
-  }
-
   async findOrCreateGoogleUser(
     googleUser: {
       email: string;
@@ -320,7 +190,6 @@ export class AuthService {
       | 'signin'
       | 'signup',
   ) {
-
     const normalizedEmail =
       googleUser.email
         .toLowerCase()
@@ -342,9 +211,7 @@ export class AuthService {
       });
 
     if (user) {
-
       if (!user.googleId) {
-
         throw new BadRequestException(
           'Este correo ya está registrado con email y contraseña.',
         );
@@ -354,23 +221,18 @@ export class AuthService {
         user.googleId !==
         googleUser.googleId
       ) {
-
         throw new BadRequestException(
           'Este correo ya está vinculado a otra cuenta Google.',
         );
       }
 
       if (mode === 'signup') {
-
         throw new BadRequestException(
           'Esta cuenta Google ya existe. Inicia sesión.',
         );
       }
-
     } else {
-
       if (mode === 'signin') {
-
         throw new BadRequestException(
           'No existe una cuenta registrada con Google para este correo.',
         );
@@ -404,14 +266,12 @@ export class AuthService {
     }
 
     if (!user) {
-
       throw new BadRequestException(
         'No se pudo autenticar el usuario Google.',
       );
     }
 
     if (isAdmin) {
-
       user.role = Role.Admin;
 
       user.profileCompleted =
