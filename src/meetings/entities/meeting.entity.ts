@@ -2,55 +2,83 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('meetings')
-export class Meeting {
+import { MeetingStatus } from './meetingStatus.entity';
+
+import { Users } from 'src/users/entities/user.entity';
+import { TrainingRequests } from 'src/training-requests/entities/training-request.entity';
+
+@Entity({ name: 'MEETINGS' })
+export class Meetings {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
-  userName!: string;
-
-  @Column()
-  userEmail!: string;
-
   @Column({
-    default: 'Scheduled Meeting',
+    type: 'date',
+    nullable: false,
   })
-  topic!: string;
+  date!: Date;
 
   @Column({
-    type: 'timestamp',
+    type: 'varchar',
   })
-  startTime!: Date;
+  time!: string;
 
+  // Calendly será el proveedor principal de reuniones.
+  // Aquí se almacena el scheduling link dinámico.
   @Column({
-    type: 'timestamp',
-  })
-  endTime!: Date;
-
-  @Column({
+    type: 'varchar',
     nullable: true,
   })
-  meetLink!: string;
+  schedulingUrl!: string;
 
   @Column({
+    type: 'varchar',
     nullable: true,
   })
-  googleEventId!: string;
+  calendlyUri!: string;
 
   @Column({
-    default: 'CONFIRMED',
+    type: 'varchar',
+    nullable: true,
   })
-  status!: string;
+  joinUrl!: string;
 
   @Column({
-    default: false,
+    type: 'enum',
+    enum: MeetingStatus,
+    enumName: 'MeetingStatus',
+    default: MeetingStatus.PENDING,
   })
-  reminderSent!: boolean;
+  status!: MeetingStatus;
+
+  @ManyToOne(() => Users)
+  user!: Users;
+
+  @ManyToOne(() => TrainingRequests, (request) => request.meetings, {
+    nullable: true,
+  })
+  trainingRequest!: TrainingRequests;
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  reminder24hSent!: boolean;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  reminder2hSent!: boolean;
 }
