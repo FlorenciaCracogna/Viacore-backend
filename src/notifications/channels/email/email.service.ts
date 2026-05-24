@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-
 import axios from 'axios';
-
 import * as handlebars from 'handlebars';
-
 import * as fs from 'fs';
-
 import * as path from 'path';
 
 @Injectable()
@@ -18,7 +14,7 @@ export class EmailService {
 
     const templatePath = path.join(
       __dirname,
-      'templates',
+      `templates`,
       `${templateName}.hbs`,
     );
 
@@ -50,11 +46,8 @@ export class EmailService {
             email:
               'danielmauriciomedina95@gmail.com',
           },
-
           to: [{ email: to }],
-
           subject,
-
           htmlContent,
         },
         {
@@ -441,43 +434,87 @@ export class EmailService {
     );
   }
 
-async sendTrainingScheduledToCompany(
-  email: string,
-  companyName: string,
-) {
-  const html = this.compileTemplate('training-scheduled', {
-    companyName,
-    platformUrl: process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
-    year: new Date().getFullYear(),
-  });
+  async sendTrainingAwaitingPayment(email: string, companyName: string) {
+    const html = this.compileTemplate(`training-awaiting-payment`, {
+      companyName,
+      platformUrl:
+        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
+      year: new Date().getFullYear(),
+    });
 
-  await this.sendEmail(email, 'Capacitación agendada', html);
-}
+    await this.sendEmail(email, `Pago pendiente`, html);
+  }
 
-async sendTrainingConfirmedToCompany(
-  email: string,
-  companyName: string,
-) {
-  const html = this.compileTemplate('training-confirmed', {
-    companyName,
-    platformUrl: process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
-    year: new Date().getFullYear(),
-  });
+  async sendTrainingScheduledToCompany(email: string, companyName: string) {
+    const html = this.compileTemplate(`training-scheduled`, {
+      companyName,
+      platformUrl:
+        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
+      year: new Date().getFullYear(),
+    });
 
-  await this.sendEmail(email, 'Capacitación confirmada', html);
-}
+    await this.sendEmail(email, `Capacitación agendada`, html);
+  }
 
-async sendTrainingCancelledToCompany(
-  email: string,
-  companyName: string,
-) {
-  const html = this.compileTemplate('training-cancelled', {
-    companyName,
-    platformUrl: process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
-    year: new Date().getFullYear(),
-  });
+  async sendTrainingConfirmedToCompany(email: string, companyName: string) {
+    const html = this.compileTemplate(`training-confirmed`, {
+      companyName,
+      platformUrl:
+        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
+      year: new Date().getFullYear(),
+    });
 
-  await this.sendEmail(email, 'Solicitud cancelada', html);
-}
+    await this.sendEmail(email, `Capacitación confirmada`, html);
+  }
 
+  async sendTrainingCancelledToCompany(email: string, companyName: string) {
+    const html = this.compileTemplate(`training-cancelled`, {
+      companyName,
+      platformUrl:
+        process.env.PLATFORM_URL ?? `https://estudio-via3-frontend.vercel.app/`,
+      year: new Date().getFullYear(),
+    });
+
+    await this.sendEmail(email, `Solicitud cancelada`, html);
+  }
+
+  async sendMeetingReminder24h(
+    email: string,
+    companyName: string,
+    meetingDate: string,
+    meetingTime: string,
+    meetingLink: string,
+  ) {
+    const html = this.compileTemplate('meeting-reminder-24h', {
+      companyName,
+      meetingDate,
+      meetingTime,
+      meetingLink,
+      platformUrl:
+        process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
+      year: new Date().getFullYear(),
+    });
+
+    await this.sendEmail(email, 'Recordatorio: tu reunión es mañana', html);
+  }
+
+  async sendMeetingReminder2h(
+    email: string,
+    companyName: string,
+    meetingDate: string,
+    meetingTime: string,
+    meetingLink: string,
+  ) {
+    const html = this.compileTemplate('meeting-reminder-2h', {
+      companyName,
+      meetingDate,
+      meetingTime,
+      meetingLink,
+      platformUrl:
+        process.env.PLATFORM_URL ?? 'https://estudio-via3-frontend.vercel.app/',
+      year: new Date().getFullYear(),
+    });
+
+    await this.sendEmail(email, 'Recordatorio: tu reunión es en 2 horas', html);
+  }
 }
