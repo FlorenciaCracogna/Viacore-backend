@@ -97,11 +97,6 @@ export class AuthService {
 
     try {
 
-      // await this.emailService.sendWelcomeEmail(
-      //   savedUser.email,
-      //   savedUser.name,
-      // );
-
       console.log(
         'WELCOME EMAIL ENVIADO',
       );
@@ -205,8 +200,6 @@ export class AuthService {
         email: normalizedEmail,
       });
 
-    // NO REVELAR SI EXISTE
-
     if (!user) {
 
       return {
@@ -216,8 +209,6 @@ export class AuthService {
       };
     }
 
-    // CUENTA GOOGLE
-
     if (user.googleId) {
 
       throw new BadRequestException(
@@ -225,14 +216,11 @@ export class AuthService {
       );
     }
 
-    // LINK SIMPLE
-    // SIN TOKEN
-
     const resetLink =
       `${
         process.env.FRONTEND_URL ||
         'http://localhost:3000'
-      }/reset-password?email=${user.email}`;
+      }/reseteo-contrasenia?email=${user.email}`;
 
     try {
 
@@ -355,11 +343,7 @@ export class AuthService {
         email: normalizedEmail,
       });
 
-    // USUARIO EXISTE
-
     if (user) {
-
-      // CUENTA MANUAL
 
       if (!user.googleId) {
 
@@ -367,8 +351,6 @@ export class AuthService {
           'Este correo ya está registrado con email y contraseña.',
         );
       }
-
-      // GOOGLE ID DISTINTO
 
       if (
         user.googleId !==
@@ -380,8 +362,6 @@ export class AuthService {
         );
       }
 
-      // SIGNUP SOBRE CUENTA EXISTENTE
-
       if (mode === 'signup') {
 
         throw new BadRequestException(
@@ -391,16 +371,12 @@ export class AuthService {
 
     } else {
 
-      // SIGNIN SIN CUENTA
-
       if (mode === 'signin') {
 
         throw new BadRequestException(
           'No existe una cuenta registrada con Google para este correo.',
         );
       }
-
-      // CREAR SOLO SI NO EXISTE
 
       user =
         this.usersRepository.create({
