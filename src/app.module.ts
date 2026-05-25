@@ -125,5 +125,4 @@ async onApplicationBootstrap() {
   //console.log('Capacitaciones cargadas');
 }
     //this.calendlyService.createWebhookSubscription('https://shy-shopping-trunks.ngrok-free.dev') //aca va el link del deploy
-  }
 }
