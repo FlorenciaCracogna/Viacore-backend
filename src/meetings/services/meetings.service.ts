@@ -103,10 +103,7 @@ export class MeetingsService {
     const hour = start.getHours();
     const minutes = start.getMinutes();
 
-    const invalidHour =
-      hour < 9 ||
-      hour > 16 ||
-      (hour === 16 && minutes > 30);
+    const invalidHour = hour < 9 || hour > 16 || (hour === 16 && minutes > 30);
 
     if (invalidHour) {
       throw new BadRequestException(
@@ -114,8 +111,7 @@ export class MeetingsService {
       );
     }
 
-    const validMinutes =
-      minutes === 0 || minutes === 30;
+    const validMinutes = minutes === 0 || minutes === 30;
 
     if (!validMinutes) {
       throw new BadRequestException(
@@ -131,9 +127,7 @@ export class MeetingsService {
     });
 
     if (exists) {
-      throw new BadRequestException(
-        'Este horario ya está ocupado',
-      );
+      throw new BadRequestException('Este horario ya está ocupado');
     }
 
     const end = new Date(start.getTime() + 30 * 60000);
@@ -155,9 +149,7 @@ export class MeetingsService {
       },
 
       topic:
-        dto.topic ||
-        trainingRequest.training?.title ||
-        'Reunión programada',
+        dto.topic || trainingRequest.training?.title || 'Reunión programada',
 
       startTime: start,
       endTime: end,
@@ -186,9 +178,6 @@ export class MeetingsService {
 
   async findAll() {
     return this.meetingRepository.find({
-      where: {
-        status: Not(MeetingStatus.CANCELLED),
-      },
       relations: ['user', 'trainingRequest'],
       order: {
         startTime: 'ASC',
@@ -223,9 +212,7 @@ export class MeetingsService {
     }
 
     if (meeting.googleEventId) {
-      await this.googleMeetService.deleteEvent(
-        meeting.googleEventId,
-      );
+      await this.googleMeetService.deleteEvent(meeting.googleEventId);
     }
 
     meeting.status = MeetingStatus.CANCELLED;
@@ -233,10 +220,7 @@ export class MeetingsService {
     return await this.meetingRepository.save(meeting);
   }
 
-  async reschedule(
-    id: string,
-    dto: RescheduleMeetingDto,
-  ) {
+  async reschedule(id: string, dto: RescheduleMeetingDto) {
     const meeting = await this.meetingRepository.findOne({
       where: { id },
       relations: ['user', 'trainingRequest'],
@@ -262,9 +246,7 @@ export class MeetingsService {
       );
     }
 
-    const minAllowedDate = new Date(
-      now.getTime() + 30 * 60000,
-    );
+    const minAllowedDate = new Date(now.getTime() + 30 * 60000);
 
     if (newStart <= minAllowedDate) {
       throw new BadRequestException(
@@ -283,10 +265,7 @@ export class MeetingsService {
     const hour = newStart.getHours();
     const minutes = newStart.getMinutes();
 
-    const invalidHour =
-      hour < 9 ||
-      hour > 16 ||
-      (hour === 16 && minutes > 30);
+    const invalidHour = hour < 9 || hour > 16 || (hour === 16 && minutes > 30);
 
     if (invalidHour) {
       throw new BadRequestException(
@@ -294,8 +273,7 @@ export class MeetingsService {
       );
     }
 
-    const validMinutes =
-      minutes === 0 || minutes === 30;
+    const validMinutes = minutes === 0 || minutes === 30;
 
     if (!validMinutes) {
       throw new BadRequestException(
@@ -312,14 +290,10 @@ export class MeetingsService {
     });
 
     if (occupied) {
-      throw new BadRequestException(
-        'Este horario ya está ocupado',
-      );
+      throw new BadRequestException('Este horario ya está ocupado');
     }
 
-    const newEnd = new Date(
-      newStart.getTime() + 30 * 60000,
-    );
+    const newEnd = new Date(newStart.getTime() + 30 * 60000);
 
     if (meeting.googleEventId) {
       await this.googleMeetService.updateEvent(
