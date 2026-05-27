@@ -18,15 +18,12 @@ import { RequestStatus } from 'src/training-requests/enums/requests-status.enum'
 
 import { NotificationsGateway } from 'src/notifications/gateways/notifications.gateway';
 
-// Convierte una fecha y hora local a UTC usando el timezone del servidor
-function localToUTC(date: string, time: string): Date {
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+// Convierte una fecha y hora local (en el timezone dado) a UTC
+function localToUTC(date: string, time: string, timezone: string): Date {
+  const localString = `${date}T${time}:00`;
+  const naiveDate = new Date(localString);
 
-  // Construimos un string ISO con el timezone del servidor
-  const localDateTimeString = `${date}T${time}:00`;
-
-  // Usamos Intl para interpretar esa fecha como si fuera del timezone del servidor
-  const parts = new Intl.DateTimeFormat('en-CA', {
+  const tzFormatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
     year: 'numeric',
     month: '2-digit',
@@ -35,28 +32,61 @@ function localToUTC(date: string, time: string): Date {
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  }).formatToParts(new Date(localDateTimeString));
+  });
 
+  const parts = tzFormatter.formatToParts(naiveDate);
   const get = (type: string) =>
-    parts.find((p) => p.type === type)?.value ?? '00';
+    parseInt(parts.find((p) => p.type === type)?.value ?? '0');
 
-  // Reconstruimos la fecha en UTC a partir de las partes locales
-  const utcDate = new Date(
-    Date.UTC(
-      parseInt(get('year')),
-      parseInt(get('month')) - 1,
-      parseInt(get('day')),
-      parseInt(get('hour')),
-      parseInt(get('minute')),
-      parseInt(get('second')),
-    ),
+  const utcEquivalent = Date.UTC(
+    get('year'),
+    get('month') - 1,
+    get('day'),
+    get('hour'),
+    get('minute'),
+    get('second'),
   );
 
-  // Calculamos el offset real entre local y UTC
-  const localDate = new Date(localDateTimeString);
-  const offsetMs = localDate.getTime() - utcDate.getTime();
+  const offsetMs = naiveDate.getTime() - utcEquivalent;
 
-  return new Date(localDate.getTime() - offsetMs);
+  return new Date(naiveDate.getTime() + offsetMs);
+}
+
+// Obtiene hora y minutos locales en el timezone dado
+function getLocalHour(
+  date: Date,
+  timezone: string,
+): { hour: number; minutes: number } {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  return {
+    hour: parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0'),
+    minutes: parseInt(parts.find((p) => p.type === 'minute')?.value ?? '0'),
+  };
+}
+
+// Obtiene el día de la semana local en el timezone dado (0=domingo, 6=sábado)
+function getLocalDay(date: Date, timezone: string): number {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    weekday: 'short',
+  });
+  const weekday = formatter.format(date);
+  const days: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+  return days[weekday] ?? date.getDay();
 }
 
 @Injectable()
@@ -77,6 +107,8 @@ export class MeetingsService {
   ) {}
 
   async create(dto: CreateMeetingDto) {
+    const timezone = dto.timezone ?? 'America/Bogota';
+
     const trainingRequest = await this.trainingRequestRepository.findOne({
       where: {
         id: dto.trainingRequestId,
@@ -88,9 +120,7 @@ export class MeetingsService {
       throw new NotFoundException('Solicitud no encontrada');
     }
 
-    // Usamos la función dinámica en vez del offset hardcodeado
-    const start = localToUTC(dto.date, dto.time);
-
+    const start = localToUTC(dto.date, dto.time, timezone);
     const now = new Date();
 
     const selectedDate = new Date(start);
@@ -134,7 +164,8 @@ export class MeetingsService {
       );
     }
 
-    const day = start.getDay();
+    // Validaciones en hora local del usuario
+    const day = getLocalDay(start, timezone);
 
     if (day === 0 || day === 6) {
       throw new BadRequestException(
@@ -142,14 +173,13 @@ export class MeetingsService {
       );
     }
 
-    const hour = start.getHours();
-    const minutes = start.getMinutes();
+    const { hour, minutes } = getLocalHour(start, timezone);
 
     const invalidHour = hour < 9 || hour > 16 || (hour === 16 && minutes > 30);
 
     if (invalidHour) {
       throw new BadRequestException(
-        'La reunión está fuera del horario laboral',
+        'La reunión está fuera del horario laboral (9:00 - 16:30)',
       );
     }
 
@@ -273,7 +303,6 @@ export class MeetingsService {
     }
 
     const newStart = new Date(dto.newStartTime);
-
     const now = new Date();
 
     const selectedDate = new Date(newStart);
