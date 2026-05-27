@@ -48,7 +48,7 @@ export class MeetingsService {
       throw new NotFoundException('Solicitud no encontrada');
     }
 
-    const start = new Date(`${dto.date}T${dto.time}:00-03:00`);
+    const start = new Date(`${dto.date}T${dto.time}:00`);
 
     const now = new Date();
 
