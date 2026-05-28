@@ -39,5 +39,6 @@ import { ForgotPasswordService } from './forgot-password/forgot-password.service
     GoogleAuthGuard,
     GoogleStrategy,
   ],
+  exports: [AuthGuard],
 })
 export class AuthModule {}
