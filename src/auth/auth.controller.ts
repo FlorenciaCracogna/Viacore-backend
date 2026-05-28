@@ -121,7 +121,6 @@ export class AuthController {
       login: true,
       role: response.role,
       id: response.id,
-      access_token: response.access_token,
     };
   }
 
@@ -159,10 +158,6 @@ export class AuthController {
   @Get('profile')
   @UseGuards(AuthGuard)
   getProfile(@Req() req: Request) {
-    return {
-    ...(req as any).user,
-    access_token: req.cookies?.userSession || 
-    req.headers?.authorization?.replace('Bearer ', ''),
-  };
+    return (req as any).user;
   }
 }
