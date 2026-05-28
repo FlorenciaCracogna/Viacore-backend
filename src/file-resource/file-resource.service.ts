@@ -107,13 +107,13 @@ export class FileResourceService {
 
       fileType: uploadResult.resource_type,
 
-      trainingRequest,
+      trainingRequestId: dto.trainingRequestId,
     });
 
     return await this.fileRepository.save(fileResource);
   }
 
-  //Carga de archivos desde otro modulo
+  // Carga de archivos desde otro módulo
   async uploadForEntity(
     file: Express.Multer.File,
 
@@ -142,7 +142,7 @@ export class FileResourceService {
       parentType === 'training' ? 'image' : 'raw',
     );
 
-    // URL FINAL PARA DESCARGA DIRECTA
+    // URL FINAL
     const downloadUrl =
       parentType === 'training'
         ? cloudinary.url(uploadResult.public_id, {
@@ -165,9 +165,7 @@ export class FileResourceService {
 
     // ASOCIACIÓN DINÁMICA
     if (parentType === 'trainingRequest') {
-      fileResource.trainingRequest = {
-        id: parentId,
-      } as TrainingRequest;
+      fileResource.trainingRequestId = parentId;
     }
 
     const saved = await this.fileRepository.save(fileResource);
@@ -184,7 +182,7 @@ export class FileResourceService {
     return { ...saved, emailUrl };
   }
 
-  // función para seeder
+  // Seeder
   async createFromUrl(params: {
     url: string;
 
@@ -203,9 +201,7 @@ export class FileResourceService {
     });
 
     if (params.parentType === 'trainingRequest') {
-      fileResource.trainingRequest = {
-        id: params.parentId,
-      } as TrainingRequest;
+      fileResource.trainingRequestId = params.parentId;
     }
 
     return this.fileRepository.save(fileResource);
