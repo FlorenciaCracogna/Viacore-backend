@@ -14,8 +14,7 @@ export class AvailabilityService {
   ) {}
 
   async getAvailability(date: string, timezone: string) {
-    const [year, month, dayNum] = date.split('-').map(Number);
-    const targetDate = new Date(year, month - 1, dayNum);
+    const targetDate = new Date(`${date}T12:00:00.000Z`);
 
     const todayInTz = new Date(
       new Date().toLocaleString('en-CA', { timeZone: timezone }),
