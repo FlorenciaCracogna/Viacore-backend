@@ -14,18 +14,16 @@ import { UploadFileDto } from './dto/upload-file.dto';
 
 import { v2 as cloudinary } from 'cloudinary';
 
+import { TrainingRequest } from 'src/training-requests/entities/training-request.entity';
+
 @Injectable()
 export class FileResourceService {
   constructor(
     @InjectRepository(FileResource)
     private readonly fileRepository: Repository<FileResource>,
 
-    /*    @InjectRepository(Training)
-    private readonly trainingRepository: Repository<Training>,
-
     @InjectRepository(TrainingRequest)
     private readonly trainingRequestRepository: Repository<TrainingRequest>,
-*/
   ) {}
 
   // SUBIDA CLOUDINARY
@@ -57,7 +55,10 @@ export class FileResourceService {
       );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new InternalServerErrorException(`Error en Cloudinary: ${message}`);
+
+      throw new InternalServerErrorException(
+        `Error en Cloudinary: ${message}`,
+      );
     }
   }
 
@@ -66,41 +67,31 @@ export class FileResourceService {
       throw new BadRequestException('File is required');
     }
 
-    /*    if (!dto.trainingId && !dto.trainingRequestId) {
+    if (!dto.trainingRequestId) {
       throw new BadRequestException(
-        'File must be linked to Training or TrainingRequest',
+        'trainingRequestId is required',
       );
     }
 
-    let training: Training = null;
-    let trainingRequest: TrainingRequest = null;
-
-    if (dto.trainingId) {
-      training = await this.trainingRepository.findOne({
-        where: { id: dto.trainingId },
-      });
-
-      if (!training) {
-        throw new BadRequestException('Training not found');
-      }
-    }
-
-    if (dto.trainingRequestId) {
-      trainingRequest = await this.trainingRequestRepository.findOne({
+    const trainingRequest =
+      await this.trainingRequestRepository.findOne({
         where: { id: dto.trainingRequestId },
       });
 
-      if (!trainingRequest) {
-        throw new BadRequestException('TrainingRequest not found');
-      }
+    if (!trainingRequest) {
+      throw new BadRequestException(
+        'TrainingRequest not found',
+      );
     }
-*/
 
     // SUBIDA A CLOUDINARY
     const uploadResult = await this.uploadToCloudinary(file);
 
     // URL FINAL PARA DESCARGA DIRECTA
-    const cleanTitle = (dto.title || 'archivo').replace(/\.pdf$/i, '');
+    const cleanTitle = (dto.title || 'archivo').replace(
+      /\.pdf$/i,
+      '',
+    );
 
     const downloadUrl = cloudinary.url(uploadResult.public_id, {
       resource_type: 'raw',
@@ -116,11 +107,10 @@ export class FileResourceService {
 
       fileType: uploadResult.resource_type,
 
-      //      training,
-      //      trainingRequest,
+      trainingRequest,
     });
 
-    return this.fileRepository.save(fileResource);
+    return await this.fileRepository.save(fileResource);
   }
 
   //Carga de archivos desde otro modulo
@@ -138,18 +128,21 @@ export class FileResourceService {
     }
 
     if (!parentType || !parentId) {
-      throw new BadRequestException('parentType and parentId are required');
+      throw new BadRequestException(
+        'parentType and parentId are required',
+      );
     }
 
     // SUBIDA A CLOUDINARY
-    const uploadResult: { public_id: string; resource_type: string } =
-      await this.uploadToCloudinary(
-        file,
-        parentType === 'training' ? 'image' : 'raw',
-      );
+    const uploadResult: {
+      public_id: string;
+      resource_type: string;
+    } = await this.uploadToCloudinary(
+      file,
+      parentType === 'training' ? 'image' : 'raw',
+    );
 
     // URL FINAL PARA DESCARGA DIRECTA
-
     const downloadUrl =
       parentType === 'training'
         ? cloudinary.url(uploadResult.public_id, {
@@ -170,15 +163,11 @@ export class FileResourceService {
       fileType: uploadResult.resource_type,
     });
 
-    // ASOCIACIÓN DINÁMICA (SIN USAR REPOS)
-    if (parentType === 'training') {
-      fileResource.training = {
-        id: parentId,
-      } as unknown as FileResource['training'];
-    }
-
+    // ASOCIACIÓN DINÁMICA
     if (parentType === 'trainingRequest') {
-      fileResource.trainingRequestId = parentId;
+      fileResource.trainingRequest = {
+        id: parentId,
+      } as TrainingRequest;
     }
 
     const saved = await this.fileRepository.save(fileResource);
@@ -195,7 +184,7 @@ export class FileResourceService {
     return { ...saved, emailUrl };
   }
 
-  //fincion para seeder de training
+  // función para seeder
   async createFromUrl(params: {
     url: string;
 
@@ -210,18 +199,26 @@ export class FileResourceService {
 
       title: params.title,
 
-      training: {
-        id: params.parentId,
-      },
-
       fileType: 'image',
     });
+
+    if (params.parentType === 'trainingRequest') {
+      fileResource.trainingRequest = {
+        id: params.parentId,
+      } as TrainingRequest;
+    }
 
     return this.fileRepository.save(fileResource);
   }
 
-  async uploadImageAndGetUrl(file: Express.Multer.File): Promise<string> {
-    const uploaded = await this.uploadToCloudinary(file, 'image');
+  async uploadImageAndGetUrl(
+    file: Express.Multer.File,
+  ): Promise<string> {
+    const uploaded = await this.uploadToCloudinary(
+      file,
+      'image',
+    );
+
     return cloudinary.url(uploaded.public_id, {
       resource_type: 'image',
       secure: true,
