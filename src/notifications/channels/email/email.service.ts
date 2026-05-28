@@ -22,6 +22,16 @@ export class EmailService {
       `${templateName}.hbs`,
     );
 
+    console.log('>>> __dirname:', __dirname);
+    console.log('>>> templatePath:', templatePath);
+
+    try {
+      const dirContents = fs.readdirSync(__dirname);
+      console.log('>>> __dirname contents:', dirContents);
+    } catch (e) {
+      console.log('>>> Error leyendo __dirname:', e);
+    }
+
     const source = fs.readFileSync(
       templatePath,
       'utf8',
