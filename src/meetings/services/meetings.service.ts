@@ -21,35 +21,12 @@ import { NotificationsGateway } from 'src/notifications/gateways/notifications.g
 // Convierte una fecha y hora local (en el timezone dado) a UTC
 function localToUTC(date: string, time: string, timezone: string): Date {
   const localString = `${date}T${time}:00`;
-  const naiveDate = new Date(localString);
-
-  const tzFormatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
-
-  const parts = tzFormatter.formatToParts(naiveDate);
-  const get = (type: string) =>
-    parseInt(parts.find((p) => p.type === type)?.value ?? '0');
-
-  const utcEquivalent = Date.UTC(
-    get('year'),
-    get('month') - 1,
-    get('day'),
-    get('hour'),
-    get('minute'),
-    get('second'),
+  const localDate = new Date(localString);
+  const tzDate = new Date(
+    new Date(localString).toLocaleString('en-US', { timeZone: timezone }),
   );
-
-  const offsetMs = naiveDate.getTime() - utcEquivalent;
-
-  return new Date(naiveDate.getTime() + offsetMs);
+  const offsetMs = localDate.getTime() - tzDate.getTime();
+  return new Date(localDate.getTime() + offsetMs);
 }
 
 // Obtiene hora y minutos locales en el timezone dado
@@ -78,7 +55,13 @@ function getLocalDay(date: Date, timezone: string): number {
   });
   const weekday = formatter.format(date);
   const days: Record<string, number> = {
-    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
   };
   return days[weekday] ?? date.getDay();
 }
@@ -201,7 +184,8 @@ export class MeetingsService {
     const meeting = this.meetingRepository.create({
       user: { id: request.user.id },
       trainingRequest: { id: dto.trainingRequestId },
-      topic: dto.topic || trainingRequest.training?.title || 'Reunión programada',
+      topic:
+        dto.topic || trainingRequest.training?.title || 'Reunión programada',
       startTime: start,
       endTime: end,
       meetLink: googleData.meetLink,
