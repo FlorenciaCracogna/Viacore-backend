@@ -1,100 +1,180 @@
-# estudio-via3-backend
+<div align="center">
 
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=B8860B&height=180&section=header&fontColor=ffffff&animation=fadeIn" />
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<img src="./logo.png" alt="VIACORE Logo" width="120" />
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# VIACORE
+### Plataforma de Capacitaciones Corporativas
 
-## Description
+![Status](https://img.shields.io/badge/Estado-Producción-gold?style=for-the-badge)
+![Henry](https://img.shields.io/badge/Henry-Proyecto%20Final-black?style=for-the-badge)
+![Team](https://img.shields.io/badge/Equipo-8%20personas-B8860B?style=for-the-badge)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+<a href="https://estudio-via3-frontend.vercel.app/" target="_blank">
+  <img src="https://img.shields.io/badge/🌐 Ver Demo-000000?style=for-the-badge&logo=vercel&logoColor=white"/>
+</a>
+<a href="https://estudio-via3-backend-production.up.railway.app/docs" target="_blank">
+  <img src="https://img.shields.io/badge/📄 API Docs (Swagger)-85EA2D?style=for-the-badge&logo=swagger&logoColor=black"/>
+</a>
+<a href="https://github.com/via3-sketch/estudio-via3-frontend" target="_blank">
+  <img src="https://img.shields.io/badge/Repo Frontend-181717?style=for-the-badge&logo=github&logoColor=white"/>
+</a>
+<a href="https://github.com/via3-sketch/estudio-via3-backend" target="_blank">
+  <img src="https://img.shields.io/badge/Repo Backend-181717?style=for-the-badge&logo=github&logoColor=white"/>
+</a>
 
-## Project setup
+</div>
 
+---
+
+## 📋 Descripción
+
+**VIACORE** es una plataforma fullstack para la comercialización de servicios de capacitación empresarial. Permite a empresas solicitar, coordinar y pagar capacitaciones a medida, gestionando todo el flujo desde la solicitud inicial hasta la confirmación del servicio.
+
+---
+
+## ✨ Funcionalidades principales
+
+- 👤 **Registro y autenticación** de usuarios con email/contraseña y **Google OAuth**
+- 📅 **Solicitud y agendamiento** de capacitaciones con reunión inicial de diagnóstico
+- 💬 **Chat en tiempo real** entre usuario y administrador via WebSockets
+- 💳 **Pagos online** integrados con **Mercado Pago**
+- 🤖 **Chatbot con IA** para asistencia al usuario
+- 🔔 **Notificaciones automáticas** por email mediante **CRON jobs**
+- 👨‍💼 **Panel de administración** con gestión de usuarios, capacitaciones y pagos
+- 🔐 **Roles y permisos** (Admin / Usuario)
+
+---
+
+## 🛠️ Tech Stack
+
+<div align="center">
+
+### Frontend
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+
+### Backend
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-FE0803?style=for-the-badge&logo=typeorm&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+
+### Base de datos & Deploy
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
+
+</div>
+
+---
+
+## 🚀 Instalación y uso local
+
+### Requisitos previos
+- Node.js v18+
+- npm o yarn
+- PostgreSQL o cuenta en Supabase
+
+### Backend
 ```bash
-$ npm install
+# Clonar el repositorio
+git clone https://github.com/FlorenciaCracogna/Viacore-backend
+cd Viacore-backend
+
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env
+# Completar las variables en el archivo .env
+
+# Correr en desarrollo
+npm run start:dev
 ```
 
-## Compile and run the project
-
+### Frontend
 ```bash
-# development
-$ npm run start
+# Clonar el repositorio
+git clone https://github.com/FlorenciaCracogna/Viacore-frontend
+cd Viacore-frontend
 
-# watch mode
-$ npm run start:dev
+# Instalar dependencias
+npm install
 
-# production mode
-$ npm run start:prod
+# Configurar variables de entorno
+cp .env.example .env.local
+# Completar las variables en el archivo .env.local
+
+# Correr en desarrollo
+npm run dev
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## ⚙️ Variables de entorno
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+### Backend `.env`
+```env
+DB_HOST=
+DB_PORT=
+DB_USERNAME=
+DB_PASSWORD=
+DB_NAME=
+JWT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+MP_ACCESS_TOKEN=
+MAIL_USER=
+MAIL_PASS=
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+### Frontend `.env.local`
+```env
+NEXT_PUBLIC_API_URL=
+NEXTAUTH_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🔄 Metodología de trabajo
 
-Check out a few resources that may come in handy when working with NestJS:
+El proyecto fue desarrollado en equipo bajo metodología **SCRUM**:
+- 📌 Sprints semanales con presentación a Product Owner
+- 🗂️ Gestión de tareas con tablero Kanban
+- 🔀 Flujo de trabajo con ramas feature/fix y Pull Requests a `develop`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## 👥 Equipo
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+<div align="center">
 
-## Stay in touch
+| Colaborador | GitHub |
+|-------------|--------|
+| Florencia Cracogna | [@FlorenciaCracogna](https://github.com/FlorenciaCracogna) |
+| TF Colmenares | [@TFColmenares](https://github.com/TFColmenares) |
+| Jennifer Huertas | [@JenniferHuertas](https://github.com/JenniferHuertas) |
+| Daniel Medina | [@danielmedinamauricio92-sketch](https://github.com/danielmedinamauricio92-sketch) |
+| Axel Aranda | [@axelaranda](https://github.com/axelaranda) |
+| Luis A. | [@LuisA1303](https://github.com/LuisA1303) |
+| Agustín Heinzenreder | [@AgustinHeizenreder](https://github.com/AgustinHeizenreder) |
+| B. David | [@bdavidbm](https://github.com/bdavidbm) |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+</div>
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+<div align="center">
+
+**Desarrollado con ❤️ en Henry Bootcamp — 2026**
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=B8860B&height=100&section=footer" />
+
+</div>
